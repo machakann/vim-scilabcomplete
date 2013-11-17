@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 15-Nov-2013.
+" Last Change: 17-Nov-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -56,34 +56,25 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     let cmd     = b:scilabcomplete_startup_command
     let prompts = b:scilabcomplete_console_prompts
 
-    " Preparing ProcessManager module from vital.vim
-    let s:V  = vital#of('scilabcomplete')
-    let s:PM = s:V.import('ProcessManager')
-    if !s:PM.is_available()
-        " If vimproc is not available, then quit immediately.
-        echoerr 'scilabcomplete : vimproc is not available!'
-        return
-    endif
-
     " Communicate with scilab process
-    call s:PM.touch(name, cmd)
+    call b:PM.touch(name, cmd)
     if word !~# a:base
         let msg = "scilabcomplete_ans = exists('" . word . "')"
-        let success = s:run_scilab_command(name, msg, prompts)
+        let success = scilabcomplete#run_command(name, msg, prompts)
         if success == len(prompts)
-            let output = s:readout_scilab_output(name, prompts)
+            let output = scilabcomplete#read_out(name, prompts)
             if matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs[01]\ze.')
                 let msg     = "scilabcomplete_ans = type(" . word . ")"
-                let success = s:run_scilab_command(name, msg, prompts)
+                let success = scilabcomplete#run_command(name, msg, prompts)
                 if success == len(prompts)
-                    let output = s:readout_scilab_output(name, prompts)
+                    let output = scilabcomplete#read_out(name, prompts)
                     let type = matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs\d\+\ze.')
                     if type =~# "17"
                         let kind    = "k"
                         let msg     = "scilabcomplete_ans = fieldnames(" . word . ")"
-                        let success = s:run_scilab_command(name, msg, prompts)
+                        let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
-                            let output = s:readout_scilab_output(name, prompts)
+                            let output = scilabcomplete#read_out(name, prompts)
                             let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), "v:val =~# '[a-zA-Z0-9_%]\+'")
                             if !empty(a:base)
                                 let fieldnames = filter(fieldnames, "v:val =~# '^" . a:base . ".*'")
@@ -92,9 +83,9 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                     elseif type =~# "9"
                         let kind    = "g"
                         let msg     = "scilabcomplete_gp = completion('" . a:base . "', 'graphic_properties')"
-                        let success = s:run_scilab_command(name, msg, prompts)
+                        let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
-                            let output = s:readout_scilab_output(name, prompts)
+                            let output = scilabcomplete#read_out(name, prompts)
                             let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), "v:val =~# '[a-zA-Z0-9_%]\+'")
                         endif
                     endif
@@ -106,9 +97,9 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
         endif
     else
         let msg     = "[scilabcomplete_functions, scilabcomplete_commands, scilabcomplete_variables, scilabcomplete_macros, scilabcomplete_gp, scilabcomplete_files] = completion('" . a:base . "')"
-        let success = s:run_scilab_command(name, msg, prompts)
+        let success = scilabcomplete#run_command(name, msg, prompts)
         if success == len(prompts)
-            let output = s:readout_scilab_output(name, prompts)
+            let output = scilabcomplete#read_out(name, prompts)
 
             " Parsing the output
             let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
@@ -235,7 +226,15 @@ function! scilabcomplete#Initialization()   "{{{
     let b:scilabcomplete_console_prompts = get(g:, "scilabcomplete_scilab_prompt", ['-->'])
     " The way to determine the priorities of each kinds of candidates
     let b:scilabcomplete_candidate_priorities = get(g:, "scilabcomplete_candidate_priorities", {'functions' : 5, 'commands' : 4, 'variables' : 3, 'macros' : 2, 'graphic_properties' : 1, 'files' : 6})
-    return
+
+    " Preparing ProcessManager module from vital.vim
+    let b:V  = vital#of('scilabcomplete')
+    let b:PM = b:V.import('ProcessManager')
+    if !b:PM.is_available()
+        " If vimproc is not available, then quit immediately.
+        echoerr 'scilabcomplete : vimproc is not available!'
+        return
+    endif
 endfunction
 "}}}
 
@@ -279,12 +278,12 @@ endfunction
 "}}}
 
 " Execute Scilab command to return the number of prompts which succeeded to sending.
-function! s:run_scilab_command(name, msg, prompts)  "{{{
+function! scilabcomplete#run_command(name, msg, prompts)  "{{{
     let success = 0
-    if s:PM.writeln(a:name, a:msg) =~# 'active'
+    if b:PM.writeln(a:name, a:msg) =~# 'active'
         let success = 0
         for prompt in a:prompts
-            if s:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
+            if b:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
                 let success = success + 1
             endif
         endfor
@@ -294,10 +293,10 @@ endfunction
 "}}}
 
 " Read out the output from scilab console.
-function! s:readout_scilab_output(name, prompts)    "{{{
+function! scilabcomplete#read_out(name, prompts)    "{{{
     while 1
         " 安全策を入れる、エラー処理勉強して
-        let output = s:PM.read(a:name, a:prompts)
+        let output = b:PM.read(a:name, a:prompts)
         if output[2] =~# "matched"
             break
         endif
@@ -311,9 +310,9 @@ endfunction
 function! s:dictionary_creation(name, prompts)  "{{{
     let candidates = []
     let msg     = "[scilabcomplete_functions, scilabcomplete_commands, scilabcomplete_variables, scilabcomplete_macros, scilabcomplete_gp, scilabcomplete_files] = completion('')"
-    let success = s:run_scilab_command(a:name, msg, a:prompts)
+    let success = scilabcomplete#run_command(a:name, msg, a:prompts)
     if success == len(a:prompts)
-        let output = s:readout_scilab_output(a:name, a:prompts)
+        let output = scilabcomplete#read_out(a:name, a:prompts)
 
         " Parsing the output
         let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
