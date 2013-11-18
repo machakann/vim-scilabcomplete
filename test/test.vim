@@ -6,12 +6,13 @@
 " ‚©‚ç‚Å‚·I
 "
 " TODO: s:run_testmacro, s:copy_result, s:judge‚ð‚Ü‚Æ‚ß‚½ƒ‰ƒbƒvŠÖ”‚ðì‚é
-" TODO: test_info‚ÉŽ¸”s‚µ‚½‚ç‘¦À‚ÉI—¹‚·‚é‚æ‚¤‚ÈŽd‘g‚Ý‚ðì‚é
-" TODO: ¡‚Ìtest_info.n.n.result‚Ì‹Lq‚Í“ªˆ«‚·‚¬B‚È‚ñ‚Æ‚©‚·‚éB
-" TODO: ªsearch‚ªŽ¸”s‚µ‚½ê‡‚ÉŒx‚Å‚«‚é‚æ‚¤‚É‚µ‚Ä‚­‚ê
-" TODO: test_infoG‚Á‚½Œãtest_main_func‚¢‚¶‚ç‚È‚¢‚Æ‚¢‚¯‚È‚¢¡‚Ìó‹µ‚ÍÅˆ«
+" TODO: search‚ªŽ¸”s‚µ‚½ê‡‚ÉŒx‚Å‚«‚é‚æ‚¤‚É‚µ‚Ä‚­‚ê
 " TODO: test_info‚Éon/off—p‚ÌƒvƒƒpƒeƒB‚ð’Ç‰Á
-" TODO: quit_info.failed‚ª–ˆ‰ñ‚©‚«‚©‚¦‚ç‚ê‚¿‚á‚¤
+" TODO: touch_quit_info‚ÌŽd—l‚ª‹C‚É“ü‚ç‚È‚¢...
+" TODO: ƒfƒoƒbƒO—p‚É‚àƒƒO“f‚­êŠ‚ª‚ ‚é‚Æ‚¢‚¢‚È‚ ‚Á‚Ä
+" TODO: s:minimum_header_width‚Ìˆµ‚¢‚É‚Â‚¢‚ÄBa:pos =~# '\d\+-\d\+'‚Ì•Ó‚è
+" TODO: ªƒ[ƒJƒ‹‚È’l‚É‚µ‚æ‚¤‚©‚È
+" TODO: s:insert_header_template(dict, pos)‚ÌƒL[‘¶ÝŠm”F‚ÍÁ‚·
 
 " Test information"{{{
 " Test 1
@@ -19,58 +20,41 @@ let test_info   = {}
 let test_info.general = { 'commentstring' : '^\s*// ', 'header_test' : 'Test', 'header_result' : 'Result', 'header_expectation' : 'Expectation', 'minimum_header_width' : 15 }
 let test_info.pre     = { 'breaking' : 1 }
 let test_info.0       = {
-    \   "1"    : { 'header' : 'environment', 'result' : 's:check_environment()', 'expectation' : '0', 'macro' : '', 'breaking' : 0, 'abort' : 1},
+    \   "pre"  : { 'breaking' : 0 },
+    \   "1"    : { 'header' : 'environment', 'result' : 's:check_environment()', 'expectation' : '0', 'macro' : '', 'breaking' : 0, 'abort' : 1, 'pre' : {}, 'post' : {} },
     \   "line" : { 'char' : '-', 'width' : 50 },
     \   "post" : { 'breaking' : 1}
     \   }
 let test_info.1       = {
     \   "pre"  : { 'breaking' : 0 },
     \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'functions',   'result' : 'getline(".")', 'expectation' : 'functions = getversion();', 'macro' : 'A();'        , 'breaking' : 1 },
-    \   "2"    : { 'header' : 'variables',   'result' : 'getline(".")', 'expectation' : 'variables = SCIHOME;',      'macro' : 'A;'          , 'breaking' : 1 },
-    \   "3"    : { 'header' : 'macros',      'result' : 'getline(".")', 'expectation' : 'macros = sind(90);',        'macro' : 'A(90);', 'breaking' : 1 },
-    \   "4"    : { 'header' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'macro' : 'A'         , 'breaking' : 0 },
+    \   "1"    : { 'header' : 'functions',   'result' : 'getline(".")', 'expectation' : 'functions = getversion();', 'macro' : 'A();'        , 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'header' : 'variables',   'result' : 'getline(".")', 'expectation' : 'variables = SCIHOME;',      'macro' : 'A;'          , 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "3"    : { 'header' : 'macros',      'result' : 'getline(".")', 'expectation' : 'macros = sind(90);',        'macro' : 'A(90);', 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "4"    : { 'header' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'macro' : 'A'         , 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 6 },
     \   }
 let test_info.2       = {
     \   "pre"  : { 'breaking' : 0 , 'commands' : 'UpdateWorkspace'},
     \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'number',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Hydrogen.',                 'macro' : '3xA',     'breaking' : 1 },
-    \   "2"    : { 'header' : 'matrix',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Halogen(1, 1).',            'macro' : '3xA',     'breaking' : 1 },
-    \   "3"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Sodium    = AlkaliMetal(1, 1).entries', 'macro' : '3xA',   'breaking' : 1 },
-    \   "4"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Potassium = AlkaliMetal(1, 2).entries', 'macro' : '3xA',     'breaking' : 1 },
-    \   "5"    : { 'header' : 'struct',         'result' : 'getline(".")', 'expectation' : 'Helium    = RareGas.Ar',                'macro' : '3xA', 'breaking' : 0 },
+    \   "1"    : { 'header' : 'number',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Hydrogen.',                 'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'header' : 'matrix',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Halogen(1, 1).',            'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "3"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Sodium    = AlkaliMetal(1, 1).entries', 'macro' : '3xA',   'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "4"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Potassium = AlkaliMetal(1, 2).entries', 'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "5"    : { 'header' : 'struct',         'result' : 'getline(".")', 'expectation' : 'Helium    = RareGas.Ar',                'macro' : '3xA', 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 4 },
     \   }
-let test_info.3   = {
+let test_info.3        = {
     \   "pre"  : { 'breaking' : 0 },
     \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.Arc',      'macro' : '3xA', 'breaking' : 1 },
-    \   "2"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.Polyline', 'macro' : '3xA', 'breaking' : 0 },
+    \   "1"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.UID',            'macro' : '3xA', 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.polyline_style', 'macro' : '3xA', 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 1 },
     \   }
+let test_info.post     = { 'breaking' : 0 }
 "}}}
 
 " define Required functions"{{{
-function! s:lock_autocomplete_plugin()  "{{{
-    let locked_plugin = []
-    if exists(':NeoCompleteLock')
-        NeoCompleteLock
-        call add(locked_plugin, "neocomplete")
-    endif
-
-    if exists(':NeoComplCacheLock')
-        NeoComplCacheLock
-        call add(locked_plugin, "neocomplcache")
-    endif
-
-    if exists(':AcpLock')
-        AcpLock
-        call add(locked_plugin, "AutoComplPop")
-    endif
-    return locked_plugin
-endfunction
-"}}}
 function! s:buffer_configuration()  "{{{
     if expand("%") == ""
         if filereadable("test.sci")
@@ -119,13 +103,54 @@ function! s:buffer_configuration()  "{{{
     return 0
 endfunction
 "}}}
-function! s:disassemble_test_info(dict, nr, sub_nr)    "{{{
-    let header = a:nr . '-' . a:sub_nr . ' ' . a:dict.header
-    let result = a:dict.result
-    let macro  = a:dict.macro
-    let abort  = a:dict.abort
+function! s:lock_autocomplete_plugin()  "{{{
+    let locked_plugin = []
+    if exists(':NeoCompleteLock')
+        NeoCompleteLock
+        call add(locked_plugin, "neocomplete")
+    endif
 
-    return [header, result, macro, abort]
+    if exists(':NeoComplCacheLock')
+        NeoComplCacheLock
+        call add(locked_plugin, "neocomplcache")
+    endif
+
+    if exists(':AcpLock')
+        AcpLock
+        call add(locked_plugin, "AutoComplPop")
+    endif
+    return locked_plugin
+endfunction
+"}}}
+function! s:check_environment() "{{{
+    execute s:scilab_script_nr . 'wincmd w'
+    if !s:PM.is_available()
+        " If vimproc is not available, then returns 1
+        return 1
+    else
+        return 0
+    endif
+    " Do I need to check any other things?
+    " If I found, then I would add... Maybe...
+endfunction
+"}}}
+function! s:generate_header(draft)  "{{{
+    let draft_width = len(a:draft)
+    let spacing = s:minimum_header_width - draft_width
+
+    if spacing > 0
+        let header = a:draft
+        let idx = 0
+        while idx < spacing
+            let header = header . " "
+            let idx += 1
+        endwhile
+    elseif spacing < 0
+        let header = a:draft[:spacing]
+    endif
+    let header = header . ": "
+
+    return header
 endfunction
 "}}}
 function! s:insert_header_template(dict, pos) "{{{
@@ -188,25 +213,11 @@ function! s:insert_header_template(dict, pos) "{{{
         endif
         normal! a: 
     elseif a:pos ==# 'res_exp'
-        let header_width = len(s:header_result)
-        let spacing = s:minimum_header_width - header_width
-        if spacing > 0
-            execute "normal! o" . s:header_result
-            execute "normal! " . spacing . "a "
-        elseif spacing < 0
-            execute "normal! o" . s:header_result[:spacing]
-        endif
-        normal! a: 
+        let header = s:generate_header(s:header_result)
+        execute "normal! o" . header
 
-        let header_width = len(s:header_expectation)
-        let spacing = s:minimum_header_width - header_width
-        if spacing > 0
-            execute "normal! o" . s:header_expectation
-            execute "normal! " . spacing . "a "
-        elseif spacing < 0
-            execute "normal! o" . s:header_expectation[:spacing]
-        endif
-        execute "normal! a: " . s:expectation
+        let header = s:generate_header(s:header_expectation)
+        execute "normal! o" . header . a:dict.expectation
         if  has_key(a:dict, 'breaking')
             if type(a:dict.breaking) == type(0) && a:dict.breaking > 0
                 execute "normal! " . a:dict.breaking . "o"
@@ -252,18 +263,6 @@ function! s:expand_result_buffer_template(test_info)    "{{{
     call s:insert_header_template(a:test_info, 'post')
 endfunction
 "}}}
-function! s:check_environment() "{{{
-    execute s:scilab_script_nr . 'wincmd w'
-    if !s:PM.is_available()
-        " If vimproc is not available, then returns 1
-        return 1
-    else
-        return 0
-    endif
-    " Do I need to check any other things?
-    " If I found, then I would add... Maybe...
-endfunction
-"}}}
 function! s:run_testmacro(header, macro)    "{{{
     execute s:scilab_script_nr . 'wincmd w'
     normal! gg
@@ -274,33 +273,33 @@ function! s:run_testmacro(header, macro)    "{{{
     normal! @q
 endfunction
 "}}}
-function! s:copy_result(header, result)   "{{{
-    execute s:scilab_script_nr . 'wincmd w'
-    normal! gg
+function! s:copy_result(header, result, quit_flag)   "{{{
+    if a:quit_flag == 0
+        execute s:scilab_script_nr . 'wincmd w'
+        normal! gg
 
-    call search(s:commentstring . a:header)
-    normal! j0
-    let final_result = eval(a:result)
-    execute s:result_nr . 'wincmd w'
-    normal! gg
-    call search('^' . a:header)
-    execute "normal! jA" . final_result
+        call search(s:commentstring . a:header)
+        normal! j0
+        let final_result = eval(a:result)
+        execute s:result_nr . 'wincmd w'
+        normal! gg
+        call search('^' . a:header)
+        execute "normal! jA" . final_result
+    endif
 endfunction
 "}}}
-function! s:judge(header, abort) "{{{
+function! s:judge(header, quit_flag) "{{{
     let failed = [1]
     execute s:result_nr . 'wincmd w'
     normal! gg
 
     let matched_line       = search('^' . a:header)
-    let Result             = matchstr(getline(matched_line + 1), '^' . s:header_result . '\zs.*')
-    let Expectation        = matchstr(getline(matched_line + 2), '^' . s:header_expectation . '\zs.*')
-    let offset_Res         = len(s:header_result)
-    let offset_Exp         = len(s:header_expectation)
-    if a:abort > 0
+    let result             = matchstr(getline(matched_line + 1), '^' . s:generate_header(s:header_result) . '\zs.*')
+    let expectation        = matchstr(getline(matched_line + 2), '^' . s:generate_header(s:header_expectation) . '\zs.*')
+    if a:quit_flag > 0
         normal! AAbort
         call matchadd("ScilabCompleteTestAbort", a:header . ' *: \zs.*')
-    elseif Result ==# Expectation
+    elseif result ==# expectation
         let failed = [0]
         normal! APassed
         call matchadd("ScilabCompleteTestPassed", a:header . ' *: \zs.*')
@@ -308,19 +307,28 @@ function! s:judge(header, abort) "{{{
         normal! AFailed
         call matchadd("ScilabCompleteTestFailed", a:header . ' *: \zs.*')
         let pos = 0
-        while pos <= len(Result)
-            let c_Res = Result[pos]
-            let c_Exp = Expectation[pos]
-            if c_Res !=# c_Exp
+        while pos <= len(result)
+            let c_res = result[pos]
+            let c_exp = expectation[pos]
+            if c_res !=# c_exp
                 break
             endif
             let pos += 1
         endwhile
-        call matchadd("ScilabCompleteTestBad", '\%' . printf("%s", matched_line + 1) . 'l\%' . printf("%s", pos + offset_Res + 1) . 'c\zs.*')
-        call matchadd("ScilabCompleteTestCap", '\%' . printf("%s", matched_line + 2) . 'l\%' . printf("%s", pos + offset_Exp + 1) . 'c\zs.*')
+        call matchadd("ScilabCompleteTestBad", '\%' . printf("%s", matched_line + 1) . 'l\%' . printf("%s", pos + len(s:header_result) + 1) . 'c\zs.*')
+        call matchadd("ScilabCompleteTestCap", '\%' . printf("%s", matched_line + 2) . 'l\%' . printf("%s", pos + len(s:header_expectation) + 1) . 'c\zs.*')
     endif
 
     return failed
+endfunction
+"}}}
+function! s:disassemble_test_info(dict, nr, sub_nr)    "{{{
+    let header = a:nr . '-' . a:sub_nr . ' ' . a:dict.header
+    let result = a:dict.result
+    let macro  = a:dict.macro
+    let abort  = a:dict.abort
+
+    return [header, result, macro, abort]
 endfunction
 "}}}
 function! s:run_command_in_test(dict)   "{{{
@@ -336,20 +344,20 @@ function! s:run_command_in_test(dict)   "{{{
             endif
 
             if exists(command)
-                execute dict.commands
+                execute a:dict.commands
                 call add(failed, 0)
             else
                 call add(failed, 1)
             endif
         elseif type(a:dict.commands) == type([])
             let failed = []
-            for command in dict.commands
+            for command in a:dict.commands
                 if command[0] != ":"
                     let command = ":" . command
                 endif
 
                 if exists(command)
-                    execute dict.commands
+                    execute a:dict.commands
                     call add(failed, 0)
                 else
                     call add(failed, 1)
@@ -360,17 +368,19 @@ function! s:run_command_in_test(dict)   "{{{
     return failed
 endfunction
 "}}}
-function! s:touch_quit_info(quit_info, pos, abort)  "{{{
+function! s:touch_quit_info(quit_info, failed, pos, abort)  "{{{
     let quit_info = deepcopy(a:quit_info)
 
     if a:quit_info.flag == 0
         if a:pos ==# 'pre' || a:pos ==# 'post'
-            if !empty(filter(a:quit_info.failed, 'v:val != 0'))
+            if !empty(filter(a:failed, 'v:val != 0'))
+                let quit_info.failed   = a:failed
                 let quit_info.position = a:pos
                 let quit_info.flag     = 1
             endif
         elseif a:pos ==# 'test'
-            if and(abort, a:quit_info.failed[0])
+            if and(a:abort, a:failed[0])
+                let quit_info.failed   = a:failed
                 let quit_info.position = a:pos
                 let quit_info.flag     = 1
             endif
@@ -381,24 +391,25 @@ endfunction
 "}}}
 function! s:test_main_func(test_info)   "{{{
     let quit_info = { 'flag' : 0,  'nr' : -1, 'sub_nr' : -1, 'failed' : [], 'position' : ''}
+    let failed = []
 
-    let quit_info.failed = s:run_command_in_test(a:test_info[nr].pre)
-    let quit_info        = s:touch_quit_info(quit_info, 'pre', 1)
+    let failed    = s:run_command_in_test(a:test_info.pre)
+    let quit_info = s:touch_quit_info(quit_info, failed, 'pre', 1)
 
-    if quit_info.flag > 0
+    if quit_info.flag == 0
         let nrs    = s:S.sort(filter(keys(a:test_info), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
         for nr in nrs
-            let quit_info.nr     = nr
-            let quit_info.failed = s:run_command_in_test(a:test_info[nr].pre)
-            let quit_info        = s:touch_quit_info(quit_info, 'pre', 1)
+            let quit_info.nr = nr
+            let failed       = s:run_command_in_test(a:test_info[nr].pre)
+            let quit_info    = s:touch_quit_info(quit_info, failed, 'pre', 1)
 
             let sub_nrs = s:S.sort(filter(keys(a:test_info[nr]), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
             for sub_nr in sub_nrs
                 let quit_info.sub_nr = sub_nr
-                let quit_info.failed = s:run_command_in_test(a:test_info[nr][sub_nr].pre)
-                let quit_info        = s:touch_quit_info(quit_info, 'pre', 1)
+                let failed    = s:run_command_in_test(a:test_info[nr][sub_nr].pre)
+                let quit_info = s:touch_quit_info(quit_info, failed, 'pre', 1)
 
-                let info = s:disassemble_test_info(a:test_info[nr][sub_nr], nr, sub_nr)
+                let info   = s:disassemble_test_info(a:test_info[nr][sub_nr], nr, sub_nr)
                 let header = info[0]
                 let result = info[1]
                 let macro  = info[2]
@@ -406,22 +417,22 @@ function! s:test_main_func(test_info)   "{{{
                 unlet info
 
                 call s:run_testmacro(header, macro)
-                call s:copy_result(header, result)
-                let quit_info.failed = s:judge(header, quit_info.flag)
-                let quit_info        = s:touch_quit_info(quit_info, 'test', abort)
+                call s:copy_result(header, result, quit_info.flag)
+                let failed    = s:judge(header, quit_info.flag)
+                let quit_info = s:touch_quit_info(quit_info, failed, 'test', abort)
 
-                let quit_info.failed = s:run_command_in_test(a:test_info[nr][sub_nr].post)
-                let quit_info        = s:touch_quit_info(quit_info, 'post', 1)
+                let failed    = s:run_command_in_test(a:test_info[nr][sub_nr].post)
+                let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
             endfor
 
             let quit_info.sub_nr = -1
-            let quit_info.failed = s:run_command_in_test(a:test_info[nr].post)
-            let quit_info        = s:touch_quit_info(quit_info, 'post', 1)
+            let failed    = s:run_command_in_test(a:test_info[nr].post)
+            let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
         endfor
 
         let quit_info.nr = -1
-        let quit_info.failed = s:run_command_in_test(a:test_info.post)
-        let quit_info        = s:touch_quit_info(quit_info, 'post', 1)
+        let failed    = s:run_command_in_test(a:test_info.post)
+        let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
     endif
 endfunction
 "}}}

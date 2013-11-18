@@ -60,10 +60,10 @@ graphic_handle = gca();
 // Test 3
 //----------------------
 // 3-1 graphic properties
-graphic_handle.
+// graphic_handle.
 
 
 // 3-2 graphic properties
-graphic_handle.poly
+// graphic_handle.poly
 
 //----------------------
