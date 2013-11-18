@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 17-Nov-2013.
+" Last Change: 19-Nov-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -32,7 +32,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
             else
                 " others
                 if pos == col(".") - 1
-                    let pos = -3
+                    let pos = -1
                 else
                 endif
                 break
@@ -47,6 +47,12 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     let candidates = []
     let output     = []
     let word       = s:parse_struct_name(a:base, s:line, s:cursor)
+
+    " If both word and a:base is empty, quit immediately.
+    if word == "" && a:base == ""
+        return []
+    endif
+
     if !exists("b:scilabcomplete_initialized")
         " Initialization of configuration variables runs only one time.
         call scilabcomplete#Initialization()
