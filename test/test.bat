@@ -1,1 +1,2 @@
-start gvim -c "lcd ~/Dropbox/Works/vim-scilabComplete/test" -c "source test.vim"
+cd /d %~dp0
+start gvim -c "source test.vim"

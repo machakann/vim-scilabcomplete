@@ -58,7 +58,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
 
     " Communicate with scilab process
     call b:PM.touch(name, cmd)
-    if word !~# a:base
+    if word !=# a:base
         let msg = "scilabcomplete_ans = exists('" . word . "')"
         let success = scilabcomplete#run_command(name, msg, prompts)
         if success == len(prompts)
@@ -69,13 +69,14 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                 if success == len(prompts)
                     let output = scilabcomplete#read_out(name, prompts)
                     let type = matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs\d\+\ze.')
+                    let fieldnames = []
                     if type =~# "17"
                         let kind    = "k"
                         let msg     = "scilabcomplete_ans = fieldnames(" . word . ")"
                         let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
                             let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), "v:val =~# '[a-zA-Z0-9_%]\+'")
+                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val !=# ""')
                             if !empty(a:base)
                                 let fieldnames = filter(fieldnames, "v:val =~# '^" . a:base . ".*'")
                             endif
@@ -86,7 +87,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                         let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
                             let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), "v:val =~# '[a-zA-Z0-9_%]\+'")
+                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val !=# ""')
                         endif
                     endif
                     for key in fieldnames
@@ -232,9 +233,18 @@ function! scilabcomplete#Initialization()   "{{{
     let b:PM = b:V.import('ProcessManager')
     if !b:PM.is_available()
         " If vimproc is not available, then quit immediately.
-        echoerr 'scilabcomplete : vimproc is not available!'
+        echohl WarningMsg
+        echo 'scilabcomplete : vimproc is not available!'
+        echohl NONE
         return
     endif
+
+    " Full path of the script.
+    let b:scilabcomplete_script_path = expand("%:p")
+    " Path to temporary file to use as a alias of script.
+    let b:scilabcomplete_tmpfile     = get(b:, "scilabcomplete_tmpfile", tempname())
+    " Path to temporary file storing the error message.
+    let b:scilabcomplete_errorfile   = get(b:, "scilabcomplete_errorfile", tempname())
 endfunction
 "}}}
 
