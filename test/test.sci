@@ -2,26 +2,26 @@
 
 // Test 0
 //----------------------
-// 0-1 environment check
+// 0.1 environment check
 //  If there is any error,
 //  the result is 1.
 //----------------------
 
 // Test 1
 //----------------------
-// 1-1 functions
+// 1.1 functions
 functions = getve
 
 
-// 1-2 variables
+// 1.2 variables
 variables = SCIH
 
 
-// 1-3 macros
+// 1.3 macros
 macros = sin
 
 
-// 1-4 commands
+// 1.4 commands
 cle
 
 //----------------------
@@ -33,23 +33,23 @@ RareGas     = struct('He', 2, 'Ne', 10, 'Ar', 18, 'Kr', 36, 'Xe', 54, 'Rn', 86)
 
 // Test 2
 //----------------------
-// 2-1 number
+// 2.1 number
 // Sodium    = Hydrogen.
 
 
-// 2-2 matrix
+// 2.2 matrix
 // Sodium    = Halogen(1, 1).
 
 
-// 2-3 cell variables
+// 2.3 cell variables
 // Sodium    = AlkaliMetal(1, 1).
 
 
-// 2-4 cell variables
+// 2.4 cell variables
 // Potassium = AlkaliMetal(1, 2).en
 
 
-// 2-5 struct
+// 2.5 struct
 // Helium    = RareGas.
 
 //----------------------
@@ -59,11 +59,11 @@ graphic_handle = gca();
 
 // Test 3
 //----------------------
-// 3-1 graphic properties
+// 3.1 graphic properties
 // graphic_handle.
 
 
-// 3-2 graphic properties
+// 3.2 graphic properties
 // graphic_handle.poly
 
 //----------------------

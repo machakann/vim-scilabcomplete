@@ -1,16 +1,14 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 19-Nov-2013.
+" Last Change: 22-Dec-2013.
 
-" äÊí£ÇËÇΩÇ¢Ç∆évÇ§
-" TODO: ÉLÉÉÉbÉVÉìÉOÇ≈Ç´ÇΩÇŸÇ§Ç™äÇµÇ¢
-"       -> ÉLÉÉÉbÉVÉÖëOÇ∆ÉLÉÉÉbÉVÉÖå„Ç≈éûä‘ç∑Çë™ÇÈ
-" TODO: :UpdateWorkSpaceÉRÉ}ÉìÉhÇÃí«â¡
-" TODO: ÉeÉXÉgÇèëÇ≠
-" TODO: prioritiesÇÃê∂ê¨ä÷êî
-" TODO: ÉÜÅ[ÉeÉBÉäÉeÉBä÷êîÇÃí«â¡
-" TODO: ï\é¶å`éÆÇÃâ¸ó«
-" TODO: ÉuÉâÉìÉ`êÿÇ¡ÇƒvitalÇÃâ¸ë¢
+" È†ëÂºµ„Çä„Åü„ÅÑ„Å®ÊÄù„ÅÜ
+" TODO: „Ç≠„É£„ÉÉ„Ç∑„É≥„Ç∞„Åß„Åç„Åü„Åª„ÅÜ„ÅåÂ¨â„Åó„ÅÑ
+"       -> „Ç≠„É£„ÉÉ„Ç∑„É•Ââç„Å®„Ç≠„É£„ÉÉ„Ç∑„É•Âæå„ÅßÊôÇÈñìÂ∑Æ„ÇíÊ∏¨„Çã
+" TODO: priorities„ÅÆÁîüÊàêÈñ¢Êï∞
+" TODO: „É¶„Éº„ÉÜ„Ç£„É™„ÉÜ„Ç£Èñ¢Êï∞„ÅÆËøΩÂä†
+" TODO: Ë°®Á§∫ÂΩ¢Âºè„ÅÆÊîπËâØ
+" TODO: „Éñ„É©„É≥„ÉÅÂàá„Å£„Å¶vital„ÅÆÊîπÈÄ†
 
 " Completion function
 function! scilabcomplete#Complete(findstart, base)  "{{{
@@ -56,14 +54,13 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     if !exists("b:scilabcomplete_initialized")
         " Initialization of configuration variables runs only one time.
         call scilabcomplete#Initialization()
-        let b:scilabcomplete_initialized = 1
     endif
     let name    = b:scilabcomplete_process_name
     let cmd     = b:scilabcomplete_startup_command
     let prompts = b:scilabcomplete_console_prompts
 
     " Communicate with scilab process
-    call b:PM.touch(name, cmd)
+    call s:PM.touch(name, cmd)
     if word !=# a:base
         let msg = "scilabcomplete_ans = exists('" . word . "')"
         let success = scilabcomplete#run_command(name, msg, prompts)
@@ -135,6 +132,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
             endwhile
         endif
     endif
+
     return candidates
     "}}}
 endfunction
@@ -219,41 +217,6 @@ function! s:parse_struct_name(base, line, cursor)   "{{{
 endfunction
 "}}}
 
-" Initialization of required buffer local variables.
-function! scilabcomplete#Initialization()   "{{{
-    " Process name for use of process manager
-    let b:scilabcomplete_process_name = get(g:, "scilabcomplete_process_name", "scilab")
-    " Command to start scilab
-    if has("win32") || has("win64")
-        let b:scilabcomplete_startup_command = printf("%s %s", get(g:, "scilabcomplete_scilab_command", "scilex"), get(g:, "scilabcomplete_scilab_cmdopt", "-nb -nw -l en"))
-    else
-        let b:scilabcomplete_startup_command = printf("%s %s", get(g:, "scilabcomplete_scilab_command", "scilab"), get(g:, "scilabcomplete_scilab_cmdopt", "-nb -nw -l en"))
-    endif
-    " Prompt of Scilab console
-    let b:scilabcomplete_console_prompts = get(g:, "scilabcomplete_scilab_prompt", ['-->'])
-    " The way to determine the priorities of each kinds of candidates
-    let b:scilabcomplete_candidate_priorities = get(g:, "scilabcomplete_candidate_priorities", {'functions' : 5, 'commands' : 4, 'variables' : 3, 'macros' : 2, 'graphic_properties' : 1, 'files' : 6})
-
-    " Preparing ProcessManager module from vital.vim
-    let b:V  = vital#of('scilabcomplete')
-    let b:PM = b:V.import('ProcessManager')
-    if !b:PM.is_available()
-        " If vimproc is not available, then quit immediately.
-        echohl WarningMsg
-        echo 'scilabcomplete : vimproc is not available!'
-        echohl NONE
-        return
-    endif
-
-    " Full path of the script.
-    let b:scilabcomplete_script_path = expand("%:p")
-    " Path to temporary file to use as a alias of script.
-    let b:scilabcomplete_tmpfile     = get(b:, "scilabcomplete_tmpfile", tempname())
-    " Path to temporary file storing the error message.
-    let b:scilabcomplete_errorfile   = get(b:, "scilabcomplete_errorfile", tempname())
-endfunction
-"}}}
-
 " Return the first key which its value matched with argument value.
 function! s:matched_key(dict, value)    "{{{
     let dict_value_list = values(a:dict)
@@ -293,13 +256,53 @@ function! s:priorities_dict_gen(arg)    "{{{
 endfunction
 "}}}
 
+" Initialization of required buffer local variables.
+function! scilabcomplete#Initialization()   "{{{
+    " Process name for use of process manager
+    let g:scilabcomplete_process_name = get(g:, "scilabcomplete_process_name", "scilab")
+    let b:scilabcomplete_process_name = g:scilabcomplete_process_name
+    " Command to start scilab
+    if has("win32") || has("win64")
+        let g:scilabcomplete_startup_command = printf("%s %s", get(g:, "scilabcomplete_scilab_command", "scilex"), get(g:, "scilabcomplete_scilab_cmdopt", "-nb -nw -l en"))
+    else
+        let g:scilabcomplete_startup_command = printf("%s %s", get(g:, "scilabcomplete_scilab_command", "scilab"), get(g:, "scilabcomplete_scilab_cmdopt", "-nb -nw -l en"))
+    endif
+    let b:scilabcomplete_startup_command = g:scilabcomplete_startup_command
+    " Prompt of Scilab console
+    let g:scilabcomplete_console_prompts = get(g:, "scilabcomplete_scilab_prompt", ['-->'])
+    let b:scilabcomplete_console_prompts = g:scilabcomplete_console_prompts
+    " The way to determine the priorities of each kinds of candidates
+    let g:scilabcomplete_candidate_priorities = get(g:, "scilabcomplete_candidate_priorities", {'functions' : 5, 'commands' : 4, 'variables' : 3, 'macros' : 2, 'graphic_properties' : 1, 'files' : 6})
+    let b:scilabcomplete_candidate_priorities = g:scilabcomplete_candidate_priorities
+
+    " Preparing ProcessManager module from vital.vim
+    let s:V  = vital#of('scilabcomplete')
+    let s:PM = s:V.import('ProcessManager')
+    if !s:PM.is_available()
+        " If vimproc is not available, then quit immediately.
+        echohl WarningMsg
+        echo 'scilabcomplete : vimproc is not available!'
+        echohl NONE
+        return
+    endif
+
+    " Full path of the script.
+    let b:scilabcomplete_script_path = expand("%:p")
+    " Path to temporary file to use as a alias of script.
+    let g:scilabcomplete_tmpfile     = get(g:, "scilabcomplete_tmpfile", tempname())
+    let b:scilabcomplete_tmpfile     = g:scilabcomplete_tmpfile
+
+    let b:scilabcomplete_initialized = 1
+endfunction
+"}}}
+
 " Execute Scilab command to return the number of prompts which succeeded to sending.
 function! scilabcomplete#run_command(name, msg, prompts)  "{{{
     let success = 0
-    if b:PM.writeln(a:name, a:msg) =~# 'active'
+    if s:PM.writeln(a:name, a:msg) =~# 'active'
         let success = 0
         for prompt in a:prompts
-            if b:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
+            if s:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
                 let success = success + 1
             endif
         endfor
@@ -311,8 +314,8 @@ endfunction
 " Read out the output from scilab console.
 function! scilabcomplete#read_out(name, prompts)    "{{{
     while 1
-        " à¿ëSçÙÇì¸ÇÍÇÈÅAÉGÉâÅ[èàóùï◊ã≠ÇµÇƒ
-        let output = b:PM.read(a:name, a:prompts)
+        " ÂÆâÂÖ®Á≠ñ„ÇíÂÖ•„Çå„Çã„ÄÅ„Ç®„É©„ÉºÂá¶ÁêÜÂãâÂº∑„Åó„Å¶
+        let output = s:PM.read(a:name, a:prompts)
         if output[2] =~# "matched"
             break
         endif
@@ -322,39 +325,15 @@ function! scilabcomplete#read_out(name, prompts)    "{{{
 endfunction
 "}}}
 
-" Keyword dictionary creation.
-function! s:dictionary_creation(name, prompts)  "{{{
-    let candidates = []
-    let msg     = "[scilabcomplete_functions, scilabcomplete_commands, scilabcomplete_variables, scilabcomplete_macros, scilabcomplete_gp, scilabcomplete_files] = completion('')"
-    let success = scilabcomplete#run_command(a:name, msg, a:prompts)
-    if success == len(a:prompts)
-        let output = scilabcomplete#read_out(a:name, a:prompts)
-
-        " Parsing the output
-        let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-        let scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\n \r\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-        let scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\n \r\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-        let scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\n \r\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-        let scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\n \r\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-        let scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-
-        let key_list = ['functions', 'commands', 'variables', 'macros', 'graphic_properties', 'files']
-        for key in key_list
-            execute "let list = scilabcomplete_" . key
-            if key == "files"
-                let kind = "F"
-            else
-                let kind = key[0]
-            endif
-
-            for candidate in list
-                call add(candidates, {"word" : candidate, "kind" : kind})
-            endfor
-        endfor
-
-        return candidates
-    else
-        return 0
+" Return vital object.
+function! scilabcomplete#vital_of(arg) "{{{
+    if a:arg == ''
+        return [s:V, s:PM]
+    elseif a:arg == 'V'
+        return s:V
+    elseif a:arg == 'PM'
+        return s:PM
     endif
 endfunction
 "}}}
+

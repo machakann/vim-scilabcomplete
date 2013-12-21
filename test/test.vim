@@ -1,87 +1,95 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 18-Nov-2013.
+" Last Change: 22-Dec-2013.
 
-" ‚È‚ºnormal!‚Å‚Í‚È‚­ƒ}ƒNƒ‚ğg‚Á‚½‚Ì‚©‚Æ‚¢‚¤‚Æ‚»‚Á‚¿‚Ì•û‚ª‚¿‚ç‚¿‚ç‚µ‚ÄD‚«‚¾
-" ‚©‚ç‚Å‚·I
+" ãªãœnormal!ã§ã¯ãªããƒã‚¯ãƒ­ã‚’ä½¿ã£ãŸã®ã‹ã¨ã„ã†ã¨ãã£ã¡ã®æ–¹ãŒã¡ã‚‰ã¡ã‚‰ã—ã¦å¥½ãã 
+" ã‹ã‚‰ã§ã™ï¼
 "
-" TODO: s:run_testmacro, s:copy_result, s:judge‚ğ‚Ü‚Æ‚ß‚½ƒ‰ƒbƒvŠÖ”‚ğì‚é
-" TODO: search‚ª¸”s‚µ‚½ê‡‚ÉŒx‚Å‚«‚é‚æ‚¤‚É‚µ‚Ä‚­‚ê
-" TODO: test_info‚Éon/off—p‚ÌƒvƒƒpƒeƒB‚ğ’Ç‰Á
-" TODO: touch_quit_info‚Ìd—l‚ª‹C‚É“ü‚ç‚È‚¢...
-" TODO: ƒfƒoƒbƒO—p‚É‚àƒƒO“f‚­êŠ‚ª‚ ‚é‚Æ‚¢‚¢‚È‚ ‚Á‚Ä
-" TODO: s:minimum_header_width‚Ìˆµ‚¢‚É‚Â‚¢‚ÄBa:pos =~# '\d\+-\d\+'‚Ì•Ó‚è
-" TODO: ªƒ[ƒJƒ‹‚È’l‚É‚µ‚æ‚¤‚©‚È
-" TODO: s:insert_header_template(dict, pos)‚ÌƒL[‘¶İŠm”F‚ÍÁ‚·
+" TODO: searchãŒå¤±æ•—ã—ãŸå ´åˆã«è­¦å‘Šã§ãã‚‹ã‚ˆã†ã«ã—ã¦ãã‚Œ
+" TODO: test_infoã«on/offç”¨ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¿½åŠ 
+" TODO: ãƒ‡ãƒãƒƒã‚°ç”¨ã«ã‚‚ãƒ­ã‚°åãå ´æ‰€ãŒã‚ã‚‹ã¨ã„ã„ãªã‚ã£ã¦
+" TODO: s:minimum_header_widthãŒå°ã•ã„å ´åˆé–‹ã„ãŸã‚Šé–‰ã˜ãŸã‚Šï¼ˆã‚¹ãƒ©ã‚¤ãƒ‰ï¼‰ãªUI
+" TODO: æˆåŠŸæ¡ä»¶ãŒã€Œç­‰ã—ã„ã€ã ã‘ã˜ã‚ƒã¡ã‚‡ã£ã¨ã€‚ã€‚ã€‚
+" TODO: ã‚³ãƒ¡ãƒ³ãƒˆæ™®åŠã•ã›ã‚ˆã†ã­
+" TODO: resultå–å¾—ãŒèé€šãã‹ãªã„
+" TODO: éƒ¨åˆ†çš„ã«abort
 
 " Test information"{{{
 " Test 1
-let test_info   = {}
-let test_info.general = { 'commentstring' : '^\s*// ', 'header_test' : 'Test', 'header_result' : 'Result', 'header_expectation' : 'Expectation', 'minimum_header_width' : 15 }
-let test_info.pre     = { 'breaking' : 1 }
+let test_info         = {}
+let test_info.general = {
+    \   'test_script'           : 'test.sci'
+    \   'commentstring'         : '^\s*// ',
+    \   'caption_test'          : 'Test',
+    \   'caption_result'        : 'Result',
+    \   'caption_expectation'   : 'Expectation',
+    \   'minimum_caption_width' : 20,
+    \   'split_command'         : 'vert new'
+    \   }
+let test_info.pre     = {
+    \   'text'     : '*** The result ***',
+    \   'commands' : ['let s:completeopt = &completeopt', 'set completeopt=menuone', 'setlocal ft=scilab', 'setlocal omnifunc=scilabcomplete#Complete', 'NeoCompleteLock'],
+    \   }
 let test_info.0       = {
-    \   "pre"  : { 'breaking' : 0 },
-    \   "1"    : { 'header' : 'environment', 'result' : 's:check_environment()', 'expectation' : '0', 'macro' : '', 'breaking' : 0, 'abort' : 1, 'pre' : {}, 'post' : {} },
-    \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "post" : { 'breaking' : 1}
+    \   "pre"  : { 'breaking' : 1 },
+    \   "1"    : { 'caption' : 'environment check', 'result' : 's:check_environment()', 'expectation' : '0', 'key_input' : '', 'breaking' : 0, 'abort' : 1, 'pre' : {}, 'post' : {} },
+    \   "post" : { 'breaking' : 1},
     \   }
 let test_info.1       = {
     \   "pre"  : { 'breaking' : 0 },
-    \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'functions',   'result' : 'getline(".")', 'expectation' : 'functions = getversion();', 'macro' : 'A();'        , 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "2"    : { 'header' : 'variables',   'result' : 'getline(".")', 'expectation' : 'variables = SCIHOME;',      'macro' : 'A;'          , 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "3"    : { 'header' : 'macros',      'result' : 'getline(".")', 'expectation' : 'macros = sind(90);',        'macro' : 'A(90);', 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "4"    : { 'header' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'macro' : 'A'         , 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "1"    : { 'caption' : 'functions',   'result' : 'getline(".")', 'expectation' : 'functions = getversion();', 'key_input' : "A\<C-x>\<C-o>\<C-y>();\<Esc>",                     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'caption' : 'variables',   'result' : 'getline(".")', 'expectation' : 'variables = SCIHOME;',      'key_input' : "A\<C-x>\<C-o>\<C-y>;\<Esc>",                       'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "3"    : { 'caption' : 'macros',      'result' : 'getline(".")', 'expectation' : 'macros = sind(90);',        'key_input' : "A\<C-x>\<C-o>\<C-n>\<C-n>\<C-n>\<C-y>(90);\<Esc>", 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "4"    : { 'caption' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'key_input' : "A\<C-x>\<C-o>\<C-n>\<C-y>\<Esc>",                  'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 6 },
     \   }
 let test_info.2       = {
     \   "pre"  : { 'breaking' : 0 , 'commands' : 'UpdateWorkspace'},
-    \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'number',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Hydrogen.',                 'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "2"    : { 'header' : 'matrix',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Halogen(1, 1).',            'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "3"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Sodium    = AlkaliMetal(1, 1).entries', 'macro' : '3xA',   'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "4"    : { 'header' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Potassium = AlkaliMetal(1, 2).entries', 'macro' : '3xA',     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "5"    : { 'header' : 'struct',         'result' : 'getline(".")', 'expectation' : 'Helium    = RareGas.Ar',                'macro' : '3xA', 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "1"    : { 'caption' : 'number',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Hydrogen.',                 'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>",             'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'caption' : 'matrix',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Halogen(1, 1).',            'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>",             'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "3"    : { 'caption' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Sodium    = AlkaliMetal(1, 1).entries', 'key_input' : "3xA\<C-x>\<C-o>\<C-n>\<C-y>\<Esc>",       'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "4"    : { 'caption' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Potassium = AlkaliMetal(1, 2).entries', 'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>",             'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "5"    : { 'caption' : 'struct',         'result' : 'getline(".")', 'expectation' : 'Helium    = RareGas.Ar',                'key_input' : "3xA\<C-x>\<C-o>\<C-n>\<C-n>\<C-y>\<Esc>", 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 4 },
     \   }
 let test_info.3        = {
     \   "pre"  : { 'breaking' : 0 },
-    \   "line" : { 'char' : '-', 'width' : 50 },
-    \   "1"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.UID',            'macro' : '3xA', 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "2"    : { 'header' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.polyline_style', 'macro' : '3xA', 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "1"    : { 'caption' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.UID',            'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>", 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "2"    : { 'caption' : 'graphic properties', 'result' : 'getline(".")', 'expectation' : 'graphic_handle.polyline_style', 'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>", 'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 1 },
     \   }
-let test_info.post     = { 'breaking' : 0 }
+let test_info.post     = {
+    \   'breaking' : 0,
+    \   'commands' : ['let &completeopt = s:completeopt', 'NeoCompleteUnlock']}
+let test_info.n        = { 'title' : { 'title' : 'Test', 'post' : {'line' : {'char' : '-', 'width' : 60 } } }, 'post' : { 'line' : {'char' : '-', 'width' : 60 } } }
 "}}}
 
 " define Required functions"{{{
-function! s:buffer_configuration()  "{{{
-    if expand("%") == ""
-        if filereadable("test.sci")
+function! s:buffer_configuration(test_info)  "{{{
+    if expand("%") == a:test_info.general.test_script
+        if filereadable(a:test_info.general.test_script)
             setlocal noswapfile
             lcd %:p:h
-            edit test.sci
+            execute 'edit ' . a:test_info.general.test_script
         else
             return 1
         endif
-    elseif expand("%:t") == "test.sci"
+    elseif expand("%:t") == a:test_info.general.test_script
         lcd %:h
     else
         return 1
     endif
-    let s:completeopt = &completeopt
-    set completeopt=menuone
-    setlocal ft=scilab
-    setlocal omnifunc=scilabcomplete#Complete
-    setlocal nohlsearch
-    setlocal nowrapscan
+
+    let s:scrollopt = &scrollopt
+    set scrollopt-=jump
     setlocal scrollbind
-    let s:scilab_script_nr     = winnr()
-    let s:commentstring        = '^\s*// '
-    let s:header_result        = 'Result'
-    let s:header_expectation   = 'Expectation'
-    let s:minimum_header_width = 15
-    let s:header_test          = 'Test'
+    let s:test_script_tab_nr    = tabpagenr()
+    let s:test_script_win_nr    = winnr()
+    let s:test_script_buf_nr    = bufnr('%')
+    let s:commentstring         = a:test_info.general.commentstring
+    let s:caption_result        = a:test_info.general.caption_result
+    let s:caption_expectation   = a:test_info.general.caption_expectation
+    let s:minimum_caption_width = a:test_info.general.minimum_caption_width
     " save the containts of registers
     let s:reg_q     = getreg('q')
     let s:reg_slash = getreg("/")
@@ -91,7 +99,19 @@ function! s:buffer_configuration()  "{{{
         let s:PM = s:V.import('ProcessManager')
         let s:S  = s:V.import("Data.List")
     endif
-    let s:locked_plugin = s:lock_autocomplete_plugin()
+    " Preparing result buffer
+    execute a:test_info.general.split_command
+
+    let s:result_tab_nr = tabpagenr()
+    let s:result_win_nr = winnr()
+    let s:result_buf_nr = bufnr('%')
+    setlocal scrollbind
+    setlocal noautoindent
+    setlocal nosmartindent
+    setlocal nocindent
+    setlocal nohlsearch
+    setlocal nowrapscan
+    setlocal buftype=nowrite
     " Highlighting settings
     hi! link ScilabCompleteTestComment    Comment
     hi! link ScilabCompleteTestUnderlined Underlined
@@ -100,30 +120,20 @@ function! s:buffer_configuration()  "{{{
     hi! link ScilabCompleteTestAbort      DiffChange
     hi! link ScilabCompleteTestBad        SpellBad
     hi! link ScilabCompleteTestCap        SpellCap
+    call matchadd("ScilabCompleteTestComment",    '\%1l')
+    call matchadd("ScilabCompleteTestComment",    '^\d\+-\d\+\ .*\ze:')
+    call matchadd("ScilabCompleteTestUnderlined", '^' . s:caption_result)
+    call matchadd("ScilabCompleteTestUnderlined", '^' . s:caption_expectation)
+
+    if s:result_win_nr == s:test_script_win_nr
+        return 1
+    endif
+
     return 0
 endfunction
 "}}}
-function! s:lock_autocomplete_plugin()  "{{{
-    let locked_plugin = []
-    if exists(':NeoCompleteLock')
-        NeoCompleteLock
-        call add(locked_plugin, "neocomplete")
-    endif
-
-    if exists(':NeoComplCacheLock')
-        NeoComplCacheLock
-        call add(locked_plugin, "neocomplcache")
-    endif
-
-    if exists(':AcpLock')
-        AcpLock
-        call add(locked_plugin, "AutoComplPop")
-    endif
-    return locked_plugin
-endfunction
-"}}}
 function! s:check_environment() "{{{
-    execute s:scilab_script_nr . 'wincmd w'
+    call s:move_to_test_script()
     if !s:PM.is_available()
         " If vimproc is not available, then returns 1
         return 1
@@ -134,341 +144,632 @@ function! s:check_environment() "{{{
     " If I found, then I would add... Maybe...
 endfunction
 "}}}
-function! s:generate_header(draft)  "{{{
-    let draft_width = len(a:draft)
-    let spacing = s:minimum_header_width - draft_width
-
-    if spacing > 0
-        let header = a:draft
-        let idx = 0
-        while idx < spacing
-            let header = header . " "
-            let idx += 1
-        endwhile
-    elseif spacing < 0
-        let header = a:draft[:spacing]
-    endif
-    let header = header . ": "
-
-    return header
+function! s:echo_variable(val)  "{{{
+    redir => string
+    echo a:val
+    redir END
+    return string
 endfunction
 "}}}
-function! s:insert_header_template(dict, pos) "{{{
-    if a:pos ==# 'pre'
-        if has_key(a:dict, 'pre')
-            if has_key(a:dict.pre, 'header')
-                if has_key(a:dict.pre, 'header')
-                    if type(a:dict.pre.header) == type('')
-                        execute "normal! o" . a:dict.pre.header
-                        call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
-                    elseif type(a:dict.pre.header) == type([])
-"                         don't know why, but it didn't works
-"                         call append(line('.'), a:dict.pre.header)
-                        for line in a:dict.pre.header
-                            execute "normal! o" . line
-                            call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
-                        endfor
-                    endif
-                endif
-            endif
-            if has_key(a:dict.pre, 'breaking')
-                if a:dict.pre.breaking > 0
-                    if type(a:dict.pre.breaking) == type(0) && a:dict.pre.breaking > 0
-                        execute "normal! " . a:dict.pre.breaking . "o"
-                    endif
-                endif
-            endif
-        endif
-    elseif a:pos ==# 'post'
-        if has_key(a:dict, 'post')
-            if has_key(a:dict.post, 'header')
-                if has_key(a:dict.post, 'header')
-                    if type(a:dict.post.header) == type('')
-                        execute "normal! o" . a:dict.post.header
-                        call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
-                    elseif type(a:dict.post.header) == type([])
-                        for line in a:dict.post.header
-                            execute "normal! o" . line
-                            call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
-                        endfor
-                    endif
-                endif
-            endif
-            if  has_key(a:dict.post, 'breaking')
-                if type(a:dict.post.breaking) == type(0) && a:dict.post.breaking > 0
-                    execute "normal! " . a:dict.post.breaking . "o"
-                endif
-            endif
-        endif
-    elseif a:pos ==# 'line'
-        normal! o
-        execute "normal! " . printf("%s", a:dict.line.width) . "i" . printf("%s", a:dict.line.char)
-        call matchadd("ScilabCompleteTestComment", '^' . a:dict.line.char . '\{' . a:dict.line.width . '}')
-    elseif a:pos =~# '\d\+-\d\+'
-        let header_width = len(a:pos . " " . a:dict.header)
-        execute "normal! o" . a:pos . " " . a:dict.header
-        if header_width < s:minimum_header_width
-            let spacing = s:minimum_header_width - header_width
-            execute "normal! " . spacing . "a "
-        endif
-        normal! a: 
-    elseif a:pos ==# 'res_exp'
-        let header = s:generate_header(s:header_result)
-        execute "normal! o" . header
+function! s:correct_key_of_test_info(test_info, keys, type, default, force_add)    "{{{
+    " a:test_info : dictionary
+    " a:keys      : list
+    " a:type      : 0, "", function("tr"), [], {}, 0.0
+    " a:default   : string
+    let key = a:keys[-1]
+    let address = join(a:keys, ".")
+    execute "let dict = a:test_info." . join(a:keys[0:-2], ".")
 
-        let header = s:generate_header(s:header_expectation)
-        execute "normal! o" . header . a:dict.expectation
+    if type(a:type) == type(0)
+        let type_name = "number"
+    elseif type(a:type) == type("")
+        let type_name = "string"
+    elseif type(a:type) == type(function("tr"))
+        let type_name = "funcref"
+    elseif type(a:type) == type([])
+        let type_name = "list"
+    elseif type(a:type) == type({})
+        let type_name = "dictionary"
+    else
+        let type_name = "float"
+    endif
+
+    if has_key(dict, key)
+        if type(dict[key]) != type(a:type)
+            call  add(log, "wrn : The type of test_info." . address . " should be " . type_name . "!")
+            execute "unlet a:test_info." . address
+            if a:force_add > 0
+                execute "let   a:test_info." . address . " = " . a:default
+                call  add(log, "msg : test_info." . address . " is initialized as '" . s:echo_variable(a:default) . "'.")
+            else
+                call add(log, "msg : test_info." . address . "is deleted.")
+            endif
+        endif
+    else
+        if a:force_add > 0
+            execute "let a:test_info." . address . " = " . a:default
+            call add(log, "msg : Added '" . key . "' key to test_info." . join(a:keys[0:-2], "."))
+            call add(log, "msg : test_info." . address . " is initialized as '" . s:echo_variable(a:default) . "'.")
+        endif
+    endif
+endfunction
+"}}}
+function! s:piece_out_test_info(test_info)   "{{{
+    " Log
+    if !has_key(a:dict, 'log')
+        let a:test_info.log = { 'messages' : [], 'done' : 0 }
+    else
+        if has_key(a:dict.log, 'messages')
+            unlet a:test_info.log.messages
+        endif
+        let a:test_info.log.messages = []
+
+        if has_key(a:dict.log, 'done')
+            unlet a:test_info.log.done
+        endif
+        let a:test_info.log.done = 0
+    endif
+    let log = a:test_info.log.messages
+    call add(log, 'msg : Log information has been initialized')
+
+    " General purpose informations.
+    if !has_key(a:dict, 'general')
+        let  a:test_info.general = {}
+        call add(log, "msg : Added 'general' key to test_info")
+    endif
+
+    call s:correct_key_of_test_info(a:test_info, ['general', 'commentstring'],      "", "",            1)
+    call s:correct_key_of_test_info(a:test_info, ['general', 'caption_test'],        "", "Test",        1)
+    call s:correct_key_of_test_info(a:test_info, ['general', 'caption_result'],      "", "Result",      1)
+    call s:correct_key_of_test_info(a:test_info, ['general', 'caption_expectation'], "", "Expectation", 1)
+
+    " Miscellaneous settings before starting test
+    if !has_key(a:dict, 'pre')
+        let  a:test_info.pre = {}
+        call add(log, "msg : Added 'pre' key to test_info")
+    endif
+    call s:correct_key_of_test_info(a:test_info, ['pre', 'caption'],   "", "", 0)
+    call s:correct_key_of_test_info(a:test_info, ['pre', 'breaking'], 0,  0,  0)
+endfunction
+"}}}
+function! s:move_to_test_script()   "{{{
+    execute 'tabnext ' . s:test_script_tab_nr
+    execute s:test_script_tab_nr . 'wincmd w'
+    execute 'buffer ' . s:test_script_buf_nr
+endfunction
+"}}}
+function! s:move_to_result_buffer()   "{{{
+    execute 'tabnext ' . s:result_tab_nr
+    execute s:result_win_nr . 'wincmd w'
+    execute 'buffer ' . s:result_buf_nr
+endfunction
+"}}}
+
+function! s:write_down(line)    "{{{
+    if line('.') == 1
+        execute 'normal! i' . a:line
+    else
+        execute 'normal! o' . a:line
+    endif
+endfunction
+"}}}
+function! s:generate_caption(draft)  "{{{
+    let caption     = ''
+    let draft_width = len(a:draft)
+    let spacing     = s:minimum_caption_width - draft_width
+
+    if spacing > 0
+        let caption = a:draft . repeat(' ', spacing)
+"     elseif spacing < 0
+"         let caption = a:draft[:spacing-1]
+    else
+        let caption = a:draft
+    endif
+    let caption = caption . ": "
+
+    return caption
+endfunction
+"}}}
+function! s:insert_template_pre(dict)    "{{{
+    if !has_key(a:dict, 'pre')
+        return
+    endif
+
+    if type(a:dict.pre) == type([])
+        for order in a:dict.pre
+            execute order
+        endfor
+    elseif type(a:dict.pre) == type({})
+        if has_key(a:dict.pre, 'breaking')
+            if a:dict.pre.breaking > 0
+                if type(a:dict.pre.breaking) == type(0) && a:dict.pre.breaking > 0
+                    execute "normal! " . a:dict.pre.breaking . "o"
+                endif
+            endif
+        endif
+
+        if has_key(a:dict.pre, 'text')
+            if type(a:dict.pre.text) == type('')
+                call s:write_down(a:dict.pre.text)
+                call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+            elseif type(a:dict.pre.text) == type([])
+                " don't know why, but it didn't works
+                " call append(line('.'), a:dict.pre.text)
+                for line in a:dict.pre.text
+                    call s:write_down(line)
+                    call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+                endfor
+            endif
+        endif
+
+        if has_key(a:dict.pre, 'line')
+            normal! o
+            execute "normal! " . printf("%s", a:dict.pre.line.width) . "i" . printf("%s", a:dict.pre.line.char)
+            call matchadd("ScilabCompleteTestComment", '^' . a:dict.pre.line.char . '\{' . a:dict.pre.line.width . '}')
+        endif
+    endif
+endfunction
+"}}}
+function! s:insert_template_title(dict)  "{{{
+    if !has_key(a:dict, 'title')
+        return
+    endif
+
+    if has_key(a:dict, 'title')
+        if type(a:dict.title) == type('')
+            call s:write_down(a:dict.title . ' ' . join(a:dict.address, '.'))
+            call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+        elseif type(a:dict.title) == type({})
+            if has_key(a:dict.title, 'pre')
+                call s:insert_template_pre(a:dict.title)
+            endif
+
+            if has_key(a:dict.title, 'title')
+                if type(a:dict.title.title) == type('')
+                    call s:write_down(a:dict.title.title . ' ' . join(a:dict.address, '.'))
+                    call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+                endif
+            endif
+
+            if has_key(a:dict.title, 'post')
+                call s:insert_template_post(a:dict.title)
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! s:insert_template_cap(dict)  "{{{
+    if !has_key(a:dict, 'caption')
+        return
+    endif
+
+    if has_key(a:dict, 'caption')
+        if type(a:dict.caption) == type('')
+            let label_nr = join(a:dict.address, '.')
+            let caption = s:generate_caption(label_nr . " " . a:dict.caption)
+            call s:write_down(caption)
+        elseif type(a:dict.caption) == type({})
+            if has_key(a:dict.caption, 'pre')
+                call s:insert_template_pre(a:dict.caption)
+            endif
+
+            if has_key(a:dict.caption, 'caption')
+                let label_nr = join(a:dict.address, '-')
+                let caption = s:generate_caption(label_nr . " " . a:dict.caption.caption)
+                call s:write_down(caption)
+            endif
+
+            if has_key(a:dict.caption, 'post')
+                call s:insert_template_post(a:dict.caption)
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! s:insert_template_res(dict)  "{{{
+    if !has_key(a:dict, 'result')
+        return
+    endif
+
+    if has_key(a:dict, 'result')
+        let caption = s:generate_caption(s:caption_result)
+        call s:write_down(caption)
+    endif
+endfunction
+"}}}
+function! s:insert_template_exp(dict)  "{{{
+    if !has_key(a:dict, 'expectation')
+        return
+    endif
+
+    if has_key(a:dict, 'expectation')
+        let caption = s:generate_caption(s:caption_expectation)
+        call s:write_down(caption . a:dict.expectation)
         if  has_key(a:dict, 'breaking')
             if type(a:dict.breaking) == type(0) && a:dict.breaking > 0
                 execute "normal! " . a:dict.breaking . "o"
             endif
         endif
-    elseif a:pos =~# '\d\+'
-        execute "normal! o" . s:header_test . ' ' . a:pos
-        call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
     endif
 endfunction
 "}}}
-function! s:expand_result_buffer_template(test_info)    "{{{
-    execute s:scilab_script_nr . 'wincmd w'
-    normal! gg
-    vert new
-    setlocal scrollbind
-    setlocal noautoindent
-    setlocal nosmartindent
-    setlocal nocindent
-    let s:result_nr = winnr()
-    call matchadd("ScilabCompleteTestComment",    '\%1l')
-    call matchadd("ScilabCompleteTestComment",    '^\d\+-\d\+\ .*\ze:')
-    call matchadd("ScilabCompleteTestUnderlined", '^' . s:header_result)
-    call matchadd("ScilabCompleteTestUnderlined", '^' . s:header_expectation)
+function! s:insert_template_post(dict)    "{{{
+    if !has_key(a:dict, 'post')
+        return
+    endif
 
-    normal! i   *** The result ***
-    call s:insert_header_template(a:test_info, 'pre')
-
-    let test_nrs    = s:S.sort(filter(keys(a:test_info), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
-    for nr in test_nrs
-        call s:insert_header_template(a:test_info.general, nr)
-        call s:insert_header_template(a:test_info[nr], 'pre')
-        call s:insert_header_template(a:test_info[nr], 'line')
-
-        let test_sub_nrs = s:S.sort(filter(keys(a:test_info[nr]), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
-        for sub_nr in test_sub_nrs
-            call s:insert_header_template(a:test_info[nr][sub_nr], nr . '-' . sub_nr)
-            call s:insert_header_template(a:test_info[nr][sub_nr], 'res_exp')
+    if type(a:dict.post) == type([])
+        for order in a:dict.post
+            execute order
         endfor
-        call s:insert_header_template(a:test_info[nr], 'line')
-        call s:insert_header_template(a:test_info[nr], 'post')
-    endfor
-    call s:insert_header_template(a:test_info, 'post')
-endfunction
-"}}}
-function! s:run_testmacro(header, macro)    "{{{
-    execute s:scilab_script_nr . 'wincmd w'
-    normal! gg
+    elseif type(a:dict.post) == type({})
+        if has_key(a:dict.post, 'line')
+            normal! o
+            execute "normal! " . printf("%s", a:dict.post.line.width) . "i" . printf("%s", a:dict.post.line.char)
+            call matchadd("ScilabCompleteTestComment", '^' . a:dict.post.line.char . '\{' . a:dict.post.line.width . '}')
+        endif
 
-    call search(s:commentstring . a:header)
-    normal! j0
-    call setreg('q', a:macro)
-    normal! @q
-endfunction
-"}}}
-function! s:copy_result(header, result, quit_flag)   "{{{
-    if a:quit_flag == 0
-        execute s:scilab_script_nr . 'wincmd w'
-        normal! gg
+        if has_key(a:dict.post, 'text')
+            if type(a:dict.post.text) == type('')
+                call s:write_down(a:dict.post.text)
+                call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+            elseif type(a:dict.post.text) == type([])
+                " don't know why, but it didn't works
+                " call append(line('.'), a:dict.post.text)
+                for line in a:dict.post.text
+                    call s:write_down(line)
+                    call matchadd("ScilabCompleteTestComment", '\%' . line('.') . 'l')
+                endfor
+            endif
+        endif
 
-        call search(s:commentstring . a:header)
-        normal! j0
-        let final_result = eval(a:result)
-        execute s:result_nr . 'wincmd w'
-        normal! gg
-        call search('^' . a:header)
-        execute "normal! jA" . final_result
+        if has_key(a:dict.post, 'breaking')
+            if a:dict.post.breaking > 0
+                if type(a:dict.post.breaking) == type(0) && a:dict.post.breaking > 0
+                    execute "normal! " . a:dict.post.breaking . "o"
+                endif
+            endif
+        endif
     endif
 endfunction
 "}}}
-function! s:judge(header, quit_flag) "{{{
-    let failed = [1]
-    execute s:result_nr . 'wincmd w'
-    normal! gg
-
-    let matched_line       = search('^' . a:header)
-    let result             = matchstr(getline(matched_line + 1), '^' . s:generate_header(s:header_result) . '\zs.*')
-    let expectation        = matchstr(getline(matched_line + 2), '^' . s:generate_header(s:header_expectation) . '\zs.*')
-    if a:quit_flag > 0
-        normal! AAbort
-        call matchadd("ScilabCompleteTestAbort", a:header . ' *: \zs.*')
-    elseif result ==# expectation
-        let failed = [0]
-        normal! APassed
-        call matchadd("ScilabCompleteTestPassed", a:header . ' *: \zs.*')
-    else
-        normal! AFailed
-        call matchadd("ScilabCompleteTestFailed", a:header . ' *: \zs.*')
-        let pos = 0
-        while pos <= len(result)
-            let c_res = result[pos]
-            let c_exp = expectation[pos]
-            if c_res !=# c_exp
+function! s:extend_public_factor(dict, test_info, current_address)    "{{{
+    let dict = a:dict
+    let public = a:test_info
+    let idx = 0
+    if !empty(a:current_address)
+        while idx < len(a:current_address)
+            if has_key(public, 'n')
+                let public = public.n
+            else
+                let public = {}
                 break
             endif
-            let pos += 1
+            let idx += 1
         endwhile
-        call matchadd("ScilabCompleteTestBad", '\%' . printf("%s", matched_line + 1) . 'l\%' . printf("%s", pos + len(s:header_result) + 1) . 'c\zs.*')
-        call matchadd("ScilabCompleteTestCap", '\%' . printf("%s", matched_line + 2) . 'l\%' . printf("%s", pos + len(s:header_expectation) + 1) . 'c\zs.*')
+    else
+        let public = {}
+    endif
+
+    if has_key(public, 'pre')
+        if has_key(dict, 'pre')
+            call extend(dict.pre, public.pre, 'keep')
+        else
+            let dict.pre = public.pre
+        endif
+    endif
+
+    if has_key(public, 'title')
+        if has_key(dict, 'title')
+            call extend(dict.title, public.title, 'keep')
+        else
+            let dict.title = public.title
+        endif
+    endif
+
+    if has_key(public, 'label')
+        if has_key(dict, 'label')
+            call extend(dict.label, public.label, 'keep')
+        else
+            let dict.label = public.label
+        endif
+    endif
+
+    if has_key(public, 'post')
+        if has_key(dict, 'post')
+            call extend(dict.post, public.post, 'keep')
+        else
+            let dict.post = public.post
+        endif
+    endif
+
+    return dict
+endfunction
+"}}}
+
+function! s:run_key_input(dict)    "{{{
+    if get(a:dict, 'switch', 'on') !=? 'off'
+        if has_key(a:dict, 'caption')
+            call s:move_to_test_script()
+            normal! gg
+
+            call search(s:commentstring . join(a:dict.address, '\.') . ' ' . a:dict.caption)
+            normal! j0
+            if has_key(a:dict, 'key_input')
+                call setreg('q', a:dict.key_input)
+                normal! @q
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! s:copy_result(dict, quit_flag)   "{{{
+    if get(a:dict, 'switch', 'on') !=? 'off'
+        if a:quit_flag == 0
+            if has_key(a:dict, 'result')
+                let final_result = eval(a:dict.result)
+                call s:move_to_result_buffer()
+                normal! gg
+                call search('^' . join(a:dict.address, '\.') . ' ' . a:dict.caption)
+                execute "normal! jA" . final_result
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! s:judge(dict, quit_flag) "{{{
+    let failed = []
+
+    if has_key(a:dict, 'caption')
+        let failed = [1]
+        call s:move_to_result_buffer()
+        normal! gg
+
+        let matched_line = search('^' . join(a:dict.address, '\.') . ' ' . a:dict.caption)
+        let caption_res  = s:generate_caption(s:caption_result)
+        let caption_exp  = s:generate_caption(s:caption_expectation)
+        let result       = matchstr(getline(matched_line + 1), '^' . caption_res . '\zs.*')
+        let expectation  = matchstr(getline(matched_line + 2), '^' . caption_exp . '\zs.*')
+        if get(a:dict, 'switch', 'on') ==? 'off'
+            normal! ASkipped
+            call matchadd("ScilabCompleteTestAbort", a:dict.caption . ' *: \zs.*')
+        elseif a:quit_flag > 0
+            normal! AAbort
+            call matchadd("ScilabCompleteTestAbort", a:dict.caption . ' *: \zs.*')
+        elseif result ==# expectation
+            let failed = [0]
+            normal! APassed
+            call matchadd("ScilabCompleteTestPassed", a:dict.caption . ' *: \zs.*')
+        else
+            normal! AFailed
+            call matchadd("ScilabCompleteTestFailed", a:dict.caption . ' *: \zs.*')
+            let pos = 0
+            while pos <= len(result)
+                let c_res = result[pos]
+                let c_exp = expectation[pos]
+                if c_res !=# c_exp
+                    break
+                endif
+                let pos += 1
+            endwhile
+            call matchadd("ScilabCompleteTestBad", '\%' . printf("%s", matched_line + 1) . 'l\%' . printf("%s", pos + len(caption_res) + 1) . 'c\zs.*')
+            call matchadd("ScilabCompleteTestCap", '\%' . printf("%s", matched_line + 2) . 'l\%' . printf("%s", pos + len(caption_exp) + 1) . 'c\zs.*')
+        endif
+        normal! 0
     endif
 
     return failed
 endfunction
 "}}}
-function! s:disassemble_test_info(dict, nr, sub_nr)    "{{{
-    let header = a:nr . '-' . a:sub_nr . ' ' . a:dict.header
-    let result = a:dict.result
-    let macro  = a:dict.macro
-    let abort  = a:dict.abort
-
-    return [header, result, macro, abort]
-endfunction
-"}}}
-function! s:run_command_in_test(dict)   "{{{
-    execute s:scilab_script_nr . 'wincmd w'
-
+function! s:run_commands(dict)   "{{{
     let failed = []
-    if has_key(a:dict, 'commands')
-        if type(a:dict.commands) == type('')
-            if a:dict.commands[0] == ":"
-                let command = a:dict.commands
-            else
-                let command = ":" . a:dict.commands
-            endif
 
-            if exists(command)
-                execute a:dict.commands
-                call add(failed, 0)
-            else
-                call add(failed, 1)
-            endif
-        elseif type(a:dict.commands) == type([])
-            let failed = []
-            for command in a:dict.commands
-                if command[0] != ":"
-                    let command = ":" . command
+    if get(a:dict, 'switch', 'on') !=? 'off'
+        call s:move_to_test_script()
+        if has_key(a:dict, 'commands')
+            if type(a:dict.commands) == type('')
+                if a:dict.commands[0] == ":"
+                    let command = a:dict.commands
+                else
+                    let command = ":" . a:dict.commands
                 endif
 
-                if exists(command)
+                if exists(split(command, ' ')[0])
                     execute a:dict.commands
                     call add(failed, 0)
                 else
                     call add(failed, 1)
                 endif
-            endfor
+            elseif type(a:dict.commands) == type([])
+                for command in a:dict.commands
+                    if command[0] != ":"
+                        let command = ":" . command
+                    endif
+
+                    if exists(split(command, ' ')[0])
+                        execute command
+                        call add(failed, 0)
+                    else
+                        call add(failed, 1)
+                    endif
+                endfor
+            endif
         endif
     endif
+
     return failed
 endfunction
 "}}}
-function! s:touch_quit_info(quit_info, failed, pos, abort)  "{{{
-    let quit_info = deepcopy(a:quit_info)
+function! s:touch_quit_info(dict, quit_info, failed, pos)  "{{{
+    let quit_flag = a:quit_info.flag
 
-    if a:quit_info.flag == 0
-        if a:pos ==# 'pre' || a:pos ==# 'post'
-            if !empty(filter(a:failed, 'v:val != 0'))
-                let quit_info.failed   = a:failed
-                let quit_info.position = a:pos
-                let quit_info.flag     = 1
-            endif
-        elseif a:pos ==# 'test'
-            if and(a:abort, a:failed[0])
-                let quit_info.failed   = a:failed
-                let quit_info.position = a:pos
-                let quit_info.flag     = 1
+    if !empty(a:failed)
+        if has_key(a:dict, 'abort')
+            let abort = a:dict.abort
+        else
+            let abort = 0
+        endif
+
+        if quit_flag == 0
+            if a:pos ==# 'pre' || a:pos ==# 'post'
+                if !empty(filter(a:failed, 'v:val != 0'))
+                    let a:quit_info.failed   = a:failed
+                    let a:quit_info.position = a:pos
+                    let a:quit_info.flag     = 1
+                endif
+            elseif a:pos ==# 'test'
+                if and(abort, a:failed[0])
+                    let a:quit_info.failed   = a:failed
+                    let a:quit_info.position = a:pos
+                    let a:quit_info.flag     = 1
+                endif
             endif
         endif
     endif
-    return quit_info
 endfunction
 "}}}
-function! s:test_main_func(test_info)   "{{{
-    let quit_info = { 'flag' : 0,  'nr' : -1, 'sub_nr' : -1, 'failed' : [], 'position' : ''}
+
+function! s:test_main_func(test_info)    "{{{
+    call s:move_to_result_buffer()
+
+    let glanced_nrs     = []
+    let current_address = []
+    let post_stack      = []
+    let dict            = a:test_info
+    let n_loop          = 0
+
+    let quit_info = { 'flag' : 0,  'address' : [], 'failed' : [], 'position' : ''}
     let failed = []
 
-    let failed    = s:run_command_in_test(a:test_info.pre)
-    let quit_info = s:touch_quit_info(quit_info, failed, 'pre', 1)
+    while n_loop < 100
+        let address = {'address' : current_address}
+        call extend(dict, address, "force")
 
-    if quit_info.flag == 0
-        let nrs    = s:S.sort(filter(keys(a:test_info), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
-        for nr in nrs
-            let quit_info.nr = nr
-            let failed       = s:run_command_in_test(a:test_info[nr].pre)
-            let quit_info    = s:touch_quit_info(quit_info, failed, 'pre', 1)
+        let dict = s:extend_public_factor(dict, a:test_info, current_address)
 
-            let sub_nrs = s:S.sort(filter(keys(a:test_info[nr]), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
-            for sub_nr in sub_nrs
-                let quit_info.sub_nr = sub_nr
-                let failed    = s:run_command_in_test(a:test_info[nr][sub_nr].pre)
-                let quit_info = s:touch_quit_info(quit_info, failed, 'pre', 1)
+        " expand template
+        call s:move_to_result_buffer()
+        normal! G
+        call s:insert_template_pre(dict)
+        call s:insert_template_title(dict)
+        call s:insert_template_cap(dict)
+        call s:insert_template_res(dict)
+        call s:insert_template_exp(dict)
 
-                let info   = s:disassemble_test_info(a:test_info[nr][sub_nr], nr, sub_nr)
-                let header = info[0]
-                let result = info[1]
-                let macro  = info[2]
-                let abort  = info[3]
-                unlet info
+        " run test
+        let quit_info.address = current_address
 
-                call s:run_testmacro(header, macro)
-                call s:copy_result(header, result, quit_info.flag)
-                let failed    = s:judge(header, quit_info.flag)
-                let quit_info = s:touch_quit_info(quit_info, failed, 'test', abort)
+        let failed = s:run_commands(dict.pre)
+        call s:touch_quit_info(dict, quit_info, failed, 'pre')
 
-                let failed    = s:run_command_in_test(a:test_info[nr][sub_nr].post)
-                let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
-            endfor
+        call s:run_key_input(dict)
+        call s:copy_result(dict, quit_info.flag)
+        let failed = s:judge(dict, quit_info.flag)
+        call s:touch_quit_info(dict, quit_info, failed, 'test')
 
-            let quit_info.sub_nr = -1
-            let failed    = s:run_command_in_test(a:test_info[nr].post)
-            let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
-        endfor
+        let failed = s:run_commands(dict.post)
+        call s:touch_quit_info(dict, quit_info, failed, 'post')
 
-        let quit_info.nr = -1
-        let failed    = s:run_command_in_test(a:test_info.post)
-        let quit_info = s:touch_quit_info(quit_info, failed, 'post', 1)
-    endif
+        let nrs = s:S.sort(filter(keys(dict), 'v:val =~ ''\d\+'''), 'str2nr(a:a) - str2nr(a:b)')
+        if !empty(nrs)
+            call add(post_stack, join(current_address, '.'))
+
+            let dict = dict[nrs[0]]
+            call add(current_address, nrs[0])
+            call add(glanced_nrs, deepcopy(nrs))
+        else
+            call s:move_to_result_buffer()
+            normal! G
+            call s:insert_template_post(dict)
+
+            call remove(glanced_nrs[-1], 0)
+            call remove(current_address, -1)
+            let nr = get(glanced_nrs[-1], 0, -1)
+
+            if nr >= 0
+                call add(current_address, nr)
+
+                execute 'let dict = a:test_info.' . join(current_address, '.')
+                let address = {'address' : current_address}
+                call extend(dict, address, "force")
+            else
+                call remove(glanced_nrs, -1)
+                call remove(glanced_nrs[-1], 0)
+                if !empty(glanced_nrs[0])
+                    call remove(current_address, -1)
+
+                    let address = {'address' : remove(post_stack, -1)}
+                    execute 'let dict = a:test_info.' . address.address
+                    call extend(dict, address, "force")
+
+                    let dict = s:extend_public_factor(dict, a:test_info, current_address)
+
+                    call s:move_to_result_buffer()
+                    normal! G
+                    call s:insert_template_post(dict)
+
+                    call add(current_address, glanced_nrs[-1][0])
+                    execute 'let dict = a:test_info.' . join(current_address, '.')
+
+                    let address = {'address' : current_address}
+                    call extend(dict, address, "force")
+
+                    let public = a:test_info
+                    let idx = 0
+                    while idx < len(current_address)
+                        if !has_key(public, 'n')
+                            let public = public.n
+                        else
+                            let public = {}
+                            break
+                        endif
+                        let idx += 1
+                    endwhile
+                    call extend(dict, public,  "keep")
+                else
+                    let address = {'address' : remove(post_stack, -1)}
+                    execute 'let dict = a:test_info.' . address.address
+                    call extend(dict, address, "force")
+
+                    let dict = s:extend_public_factor(dict, a:test_info, current_address)
+
+                    call s:move_to_result_buffer()
+                    normal! G
+                    call s:insert_template_post(dict)
+                    call s:insert_template_post(a:test_info)
+                    break
+                endif
+            endif
+        endif
+
+        let n_loop += 1
+    endwhile
 endfunction
 "}}}
-function! s:restore_global_settings()   "{{{
-    " Restore global options
-    let &completeopt = s:completeopt
+
+function! s:finalize()   "{{{
+    " Freeze result buffer
+    call s:move_to_test_script()
+    normal! gg
+    call s:move_to_result_buffer()
+    normal! gg
+    setlocal nomodifiable
+    " Restore global settings
+    let &scrollopt = s:scrollopt
     " Restore registers
     let reg_q     = setreg('q', s:reg_q)
     let reg_slash = setreg("/", s:reg_slash)
-    " Restore plugin settings
-    for name in s:locked_plugin
-        if name ==# "neocomplete"
-            NeoCompleteUnlock
-        endif
-
-        if name ==# "neocomplcache"
-            NeoComplCacheUnlock
-        endif
-
-        if name ==# "Autocomplpop"
-            AcpUnlock
-        endif
-    endfor
 endfunction
 "}}}
 "}}}
 
 " Testing!
 " buffer configuration
-if !s:buffer_configuration()
-    " result buffer
-    call s:expand_result_buffer_template(test_info)
+if !s:buffer_configuration(test_info)
 
     " Start test
     call s:test_main_func(test_info)
 
     " Finalize
-    call s:restore_global_settings()
+    call s:finalize()
 endif
