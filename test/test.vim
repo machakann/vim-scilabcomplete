@@ -18,7 +18,7 @@
 " Test 1
 let test_info         = {}
 let test_info.general = {
-    \   'test_script'           : 'test.sci'
+    \   'test_script'           : 'test.sci',
     \   'commentstring'         : '^\s*// ',
     \   'caption_test'          : 'Test',
     \   'caption_result'        : 'Result',
@@ -44,7 +44,7 @@ let test_info.1       = {
     \   "post" : { 'breaking' : 6 },
     \   }
 let test_info.2       = {
-    \   "pre"  : { 'breaking' : 0 , 'commands' : 'UpdateWorkspace'},
+    \   "pre"  : { 'breaking' : 0 , 'commands' : 'UpdateWorkspace!'},
     \   "1"    : { 'caption' : 'number',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Hydrogen.',                 'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>",             'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "2"    : { 'caption' : 'matrix',         'result' : 'getline(".")', 'expectation' : 'Sodium    = Halogen(1, 1).',            'key_input' : "3xA\<C-x>\<C-o>\<C-y>\<Esc>",             'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "3"    : { 'caption' : 'cell variables', 'result' : 'getline(".")', 'expectation' : 'Sodium    = AlkaliMetal(1, 1).entries', 'key_input' : "3xA\<C-x>\<C-o>\<C-n>\<C-y>\<Esc>",       'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
@@ -66,7 +66,7 @@ let test_info.n        = { 'title' : { 'title' : 'Test', 'post' : {'line' : {'ch
 
 " define Required functions"{{{
 function! s:buffer_configuration(test_info)  "{{{
-    if expand("%") == a:test_info.general.test_script
+    if expand("%") != a:test_info.general.test_script
         if filereadable(a:test_info.general.test_script)
             setlocal noswapfile
             lcd %:p:h
@@ -574,7 +574,7 @@ function! s:run_commands(dict)   "{{{
                     let command = ":" . a:dict.commands
                 endif
 
-                if exists(split(command, ' ')[0])
+                if exists(matchstr(split(command, ' ')[0], '^[^!]*'))
                     execute a:dict.commands
                     call add(failed, 0)
                 else
@@ -586,7 +586,7 @@ function! s:run_commands(dict)   "{{{
                         let command = ":" . command
                     endif
 
-                    if exists(split(command, ' ')[0])
+                    if exists(matchstr(split(command, ' ')[0], '^[^!]*'))
                         execute command
                         call add(failed, 0)
                     else

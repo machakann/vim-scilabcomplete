@@ -1,13 +1,10 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 22-Dec-2013.
+" Last Change: 23-Dec-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
 "       -> キャッシュ前とキャッシュ後で時間差を測る
-" TODO: prioritiesの生成関数
-" TODO: ユーティリティ関数の追加
-" TODO: 表示形式の改良
 " TODO: ブランチ切ってvitalの改造
 
 " Completion function
@@ -36,6 +33,8 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                 break
             endif
         endwhile
+
+        let s:pos = pos
         return pos
     endif
     "}}}
@@ -45,6 +44,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     let candidates = []
     let output     = []
     let word       = s:parse_struct_name(a:base, s:line, s:cursor)
+    let s:base = a:base
 
     " If both word and a:base is empty, quit immediately.
     if word == "" && a:base == ""
@@ -106,18 +106,18 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
             let output = scilabcomplete#read_out(name, prompts)
 
             " Parsing the output
-            let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\n \r\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\n \r\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\n \r\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\n \r\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\n \r\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\n \r\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\n \r\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\n \r\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
 
-            let candidate_priorities = s:priorities_dict_gen(b:scilabcomplete_candidate_priorities)
-            let priorities_list = values(candidate_priorities)
+            let candidate_priorities = s:priorities_dict_gen(b:Scilabcomplete_candidate_priorities)
+            let priorities_list = filter(values(candidate_priorities), 'v:val >= 0')
             while !empty(priorities_list)
                 let key = s:matched_key(candidate_priorities, max(priorities_list))
-                execute "let list = scilabcomplete_" . key
+                execute "let list = s:scilabcomplete_" . key
                 if key == "files"
                     let kind = "F"
                 else
@@ -237,11 +237,7 @@ function! s:priorities_dict_gen(arg)    "{{{
         for key in key_list
             let type = type(prototype[key])
             if type != type(0)
-                if type == type(function("tr"))
-                    let candidate_priorities[key] = prototype[key]()
-                else
-                    let candidate_priorities[key] = 0
-                endif
+                let candidate_priorities[key] = 0
             else
                 let candidate_priorities[key] = prototype[key]
             endif
@@ -249,7 +245,7 @@ function! s:priorities_dict_gen(arg)    "{{{
 
         let candidate_priorities = filter(candidate_priorities, 'v:val > 0')
     elseif type(a:arg) == type(function("tr"))
-        let candidate_priorities = a:arg()
+        let candidate_priorities = call(a:arg, [])
     endif
 
     return candidate_priorities
@@ -272,8 +268,8 @@ function! scilabcomplete#Initialization()   "{{{
     let g:scilabcomplete_console_prompts = get(g:, "scilabcomplete_scilab_prompt", ['-->'])
     let b:scilabcomplete_console_prompts = g:scilabcomplete_console_prompts
     " The way to determine the priorities of each kinds of candidates
-    let g:scilabcomplete_candidate_priorities = get(g:, "scilabcomplete_candidate_priorities", {'functions' : 5, 'commands' : 4, 'variables' : 3, 'macros' : 2, 'graphic_properties' : 1, 'files' : 6})
-    let b:scilabcomplete_candidate_priorities = g:scilabcomplete_candidate_priorities
+    let g:Scilabcomplete_candidate_priorities = get(g:, "scilabcomplete_candidate_priorities", function("scilabcomplete#default_priorities"))
+    let b:Scilabcomplete_candidate_priorities = g:Scilabcomplete_candidate_priorities
 
     " Preparing ProcessManager module from vital.vim
     let s:V  = vital#of('scilabcomplete')
@@ -325,6 +321,78 @@ function! scilabcomplete#read_out(name, prompts)    "{{{
 endfunction
 "}}}
 
+" Default priorities
+function! scilabcomplete#default_priorities()   "{{{
+    let base         = s:base
+    let cursor_pos   = s:cursor - 2
+    let whole_line   = s:line
+    let until_cursor = s:line[0:cursor_pos]
+    let files        = s:scilabcomplete_files
+    echomsg until_cursor
+
+    if match(until_cursor, '^\s*\k*$') >= 0
+        " line head or lhs
+        echomsg 'line head or lhs'
+        return {'functions' : 4, 'commands' : 6, 'variables' : 5, 'macros' : 3, 'graphic_properties' : -1, 'files' : -1}
+    endif
+
+    let paren_start = match(until_cursor, '\k\+\zs(\%([^()]*([^()]*)\)*[^()]*' . base . '$')
+    if paren_start > 0
+        let paren_inside = matchstr(whole_line[paren_start :], '^(\%([^()]*([^()]*)\)*[^()]*' . base . '[^()]*\%(([^()]*)[^()]*\)*)')
+
+        " take into account logical index
+        let operator_pos  = match(paren_inside, '^(\%([^'']*''[^'']*''\)*[^''~=<>]*\zs\%(\~=\|<>\|<=\|>=\|=\|<\|>\)')
+        let operator_pos += paren_start
+
+        if operator_pos < paren_start
+            let base_len = len(base) - 1
+            if base_len > 1
+                for candidate in files
+                    if base == candidate[0:base_len]
+                        echomsg base
+                        echomsg candidate[0:base_len]
+
+                        " files
+                        echomsg 'files'
+                        return {'functions' : -1, 'commands' : -1, 'variables' : -1, 'macros' : -1, 'graphic_properties' : -1, 'files' : 6}
+                    endif
+                endfor
+            endif
+
+            " argument
+            echomsg 'argument'
+            return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
+        elseif cursor_pos < operator_pos
+            " logical index lhs
+            echomsg 'logical index lhs'
+            return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
+        else
+            " logical index rhs
+            echomsg 'logical index rhs'
+            return {'functions' : 6, 'commands' : -1, 'variables' : 4, 'macros' : 5, 'graphic_properties' : -1, 'files' : -1}
+        endif
+        return
+    endif
+
+    let operator_pos = match(whole_line, '^\%([^'']*''[^'']*''\)*[^''~=<>]*\zs\%(\~=\|<>\|<=\|>=\|=\|<\|>\)')
+
+    if operator_pos < 0
+        " take into account lhs after '||', '&&'
+        let operator_pos = match(whole_line, '\%(||\|&&\)\%([^'']*''[^'']*''\)*[^''~=<>]*\zs\%(\~=\|<>\|<=\|>=\|=\|<\|>\)')
+    endif
+
+    if operator_pos < 0 || s:cursor < operator_pos
+        " lhs
+        echomsg 'lhs'
+        return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
+    else
+        " rhs
+        echomsg 'rhs'
+        return {'functions' : 6, 'commands' : -1, 'variables' : 4, 'macros' : 5, 'graphic_properties' : -1, 'files' : -1}
+    endif
+endfunction
+"}}}
+
 " Return vital object.
 function! scilabcomplete#vital_of(arg) "{{{
     if a:arg == ''
@@ -334,6 +402,66 @@ function! scilabcomplete#vital_of(arg) "{{{
     elseif a:arg == 'PM'
         return s:PM
     endif
+endfunction
+"}}}
+
+" Return the whole cursor line.
+function! scilabcomplete#getline()  "{{{
+    return s:line
+endfunction
+"}}}
+
+" Return the present cursor position.
+function! scilabcomplete#col()  "{{{
+    return s:cursor
+endfunction
+"}}}
+
+" Return the position to start completion.
+function! scilabcomplete#start_complete_pos()   "{{{
+    return s:pos
+endfunction
+"}}}
+
+" Return the base string of completion.
+function! scilabcomplete#base() "{{{
+    return s:base
+endfunction
+"}}}
+
+" Return candidates list of files
+function! scilabcomplete#candidates_files() "{{{
+    return s:scilabcomplete_files
+endfunction
+"}}}
+
+" Return candidates list of graphic properties
+function! scilabcomplete#candidates_graphic_properties() "{{{
+    return s:scilabcomplete_graphic_properties
+endfunction
+"}}}
+
+" Return candidates list of macros
+function! scilabcomplete#candidates_macros() "{{{
+    return s:scilabcomplete_macros
+endfunction
+"}}}
+
+" Return candidates list of variables
+function! scilabcomplete#candidates_variables() "{{{
+    return s:scilabcomplete_variables
+endfunction
+"}}}
+
+" Return candidates list of commands
+function! scilabcomplete#candidates_commands() "{{{
+    return s:scilabcomplete_commands
+endfunction
+"}}}
+
+" Return candidates list of functions
+function! scilabcomplete#candidates_functions() "{{{
+    return s:scilabcomplete_functions
 endfunction
 "}}}
 

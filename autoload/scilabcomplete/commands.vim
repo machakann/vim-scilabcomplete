@@ -7,25 +7,55 @@
 
 " Pasing error message of scilab.
 function! s:parse_error(msg_list)   "{{{
-    let error_info = {}
+    let idx        = 0
+    let error_list = []
+    let error_dict = {}
 
-    if match(a:msg_list[0], '^Warning :.*') == 0
-        let error_info.filename = b:scilabcomplete_script_path
-        let error_info.nr       = ''
-        let error_info.lnum     = ''
-        let error_info.col      = ''
-        let error_info.text     = a:msg_list[0]
-        let error_info.type     = 'W'
-    else
-        let filename = matchstr(a:msg_list[4], '^exec("\zs\f\+\ze", -1)$')
-        let error_info.filename = (filename == b:scilabcomplete_tmpfile ? b:scilabcomplete_script_path : filename)
-        let error_info.nr       = matchstr(a:msg_list[1], '\s*!--error\s*\zs\d\+\ze')
-        let error_info.lnum     = matchstr(a:msg_list[3], 'at line\s*\zs\d\+\ze of exec file called by :')
-        let error_info.col      = printf("%s", stridx(a:msg_list[1], "!"))
-        let error_info.text     = a:msg_list[2]
-        let error_info.type     = 'E'
-    endif
-    return error_info
+    while 1
+        let line = get(a:msg_list, idx, '')
+        if line == ''
+            break
+        endif
+
+        let nr  = matchstr(line, '\s*!--error\s*\zs\d\+\ze')
+        let col = printf("%s", stridx(line, "!"))
+
+        if match(line, '^Warning :.*') == 0
+            let error_dict.filename = b:scilabcomplete_script_path
+            let error_dict.nr   = ''
+            let error_dict.lnum = ''
+            let error_dict.col  = ''
+            let error_dict.text = matchstr(line, '^Warning :\zs.*')
+            let error_dict.type = 'W'
+            let error_list += [error_dict]
+        elseif nr != ''
+            let error_dict.nr   = nr
+            let error_dict.col  = col
+            let error_dict.type = 'E'
+            let error_dict.text = get(a:msg_list, idx+1, '')
+
+            let idx += 2
+
+            while 1
+                let line = get(a:msg_list, idx, '')
+                let filename = matchstr(line, '^exec("\zs\f\+\ze", -1)$')
+                let lnum     = matchstr(line, 'at line\s*\zs\d\+\ze of exec file called by :')
+
+                if lnum != ''
+                    let error_dict.lnum     = lnum
+                elseif filename != ''
+                    let error_dict.filename = (filename == b:scilabcomplete_tmpfile ? b:scilabcomplete_script_path : filename)
+                    let error_list += [error_dict]
+                    break
+                endif
+                let idx += 1
+            endwhile
+        endif
+
+        let idx += 1
+    endwhile
+
+    return error_list
 endfunction
 "}}}
 
@@ -46,17 +76,18 @@ function! s:run_script(path)    "{{{
     " Communicate with scilab process
     call s:PM.touch(name, cmd)
     let script_path = a:path
-    let msg = 'exec("' . script_path . '", -1)'
-    let success = scilabcomplete#run_command(name, msg, prompts)
-    let error_info = {}
+    let msg         = 'exec("' . script_path . '", -1)'
+    let success     = scilabcomplete#run_command(name, msg, prompts)
+    let error_list  = []
+
     if success == len(prompts)
-        let output     = scilabcomplete#read_out(name, prompts)
-        let msg_list   = filter(split(output[0], '\r*\n'), 'v:val != " "')
+        let output   = scilabcomplete#read_out(name, prompts)
+        let msg_list = filter(filter(split(output[0], '\r*\n'), 'v:val != " "'), 'v:val != ""')
         if !empty(msg_list)
-            let error_info = s:parse_error(msg_list)
+            let error_list = s:parse_error(msg_list)
         endif
     endif
-    return error_info
+    return error_list
 endfunction
 "}}}
 
@@ -69,19 +100,21 @@ function! scilabcomplete#commands#update_workspace(bang)   "{{{
     let s:PM = scilabcomplete#vital_of('PM')
 
     execute "write! " . b:scilabcomplete_tmpfile
-    let error_info = s:run_script(b:scilabcomplete_tmpfile)
-    if !empty(error_info)
-        if !empty(error_info.lnum)
-            let error_msg = 'scilabcomplete : |lnum ' . error_info.lnum . '| ' . error_info.text
-        else
-            let error_msg = 'scilabcomplete : ' . error_info.text
-        endif
-
+    let error_list = s:run_script(b:scilabcomplete_tmpfile)
+    if !empty(error_list)
         if a:bang == '!'
-            call setqflist([error_info])
+            call setqflist(error_list)
         else
             echohl WarningMsg
-            echomsg error_msg
+            for error_dict in error_list
+                if !empty(error_dict)
+                    let error_msg = 'scilabcomplete : |lnum ' . error_dict.lnum . '| ' . error_dict.text
+                else
+                    let error_msg = 'scilabcomplete : ' . error_dict.text
+                endif
+
+                echomsg error_msg
+            endfor
             echohl NONE
         endif
     else
