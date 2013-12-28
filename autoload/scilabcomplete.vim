@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 25-Dec-2013.
+" Last Change: 28-Dec-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -67,12 +67,12 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
         let success = scilabcomplete#run_command(name, msg, prompts)
         if success == len(prompts)
             let output = scilabcomplete#read_out(name, prompts)
-            if matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs[01]\ze.')
+            if matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs[01]\ze.')
                 let msg     = "scilabcomplete_ans = type(" . word . ")"
                 let success = scilabcomplete#run_command(name, msg, prompts)
                 if success == len(prompts)
                     let output = scilabcomplete#read_out(name, prompts)
-                    let type = matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs\d\+\ze.')
+                    let type = matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs\d\+\ze.')
                     let fieldnames = []
                     if type =~# "17"
                         let kind    = "k"
@@ -80,7 +80,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                         let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
                             let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val !=# ""')
+                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
                             if !empty(a:base)
                                 let fieldnames = filter(fieldnames, "v:val =~# '^" . a:base . ".*'")
                             endif
@@ -91,7 +91,7 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
                         let success = scilabcomplete#run_command(name, msg, prompts)
                         if success == len(prompts)
                             let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val !=# ""')
+                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
                         endif
                     endif
                     for key in fieldnames
@@ -107,12 +107,12 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
             let output = scilabcomplete#read_out(name, prompts)
 
             " Parsing the output
-            let s:scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\n \r\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let s:scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\n \r\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let s:scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\n \r\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let s:scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\n \r\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let s:scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\n \r\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let s:scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\n \r\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+            let s:scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
 
             let candidate_priorities = s:priorities_dict_gen(b:Scilabcomplete_candidate_priorities)
             let priorities_list = filter(values(candidate_priorities), 'v:val >= 0')
@@ -297,7 +297,6 @@ endfunction
 function! scilabcomplete#run_command(name, msg, prompts)  "{{{
     let success = 0
     if s:PM.writeln(a:name, a:msg) =~# 'active'
-        let success = 0
         for prompt in a:prompts
             if s:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
                 let success = success + 1
