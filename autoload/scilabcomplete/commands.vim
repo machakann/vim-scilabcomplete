@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 23-Dec-2013.
+" Last Change: 28-Dec-2013.
 
 " TODO: scilabのエラーメッセージをいろいろ出して対応する
 " TODO: エラーと警告の扱いについて
@@ -21,7 +21,7 @@ function! s:parse_error(msg_list)   "{{{
         let col = printf("%s", stridx(line, "!"))
 
         if match(line, '^Warning :.*') == 0
-            let error_dict.filename = b:scilabcomplete_script_path
+            let error_dict.filename = expand("%:p")
             let error_dict.nr   = ''
             let error_dict.lnum = ''
             let error_dict.col  = ''
@@ -44,7 +44,7 @@ function! s:parse_error(msg_list)   "{{{
                 if lnum != ''
                     let error_dict.lnum     = lnum
                 elseif filename != ''
-                    let error_dict.filename = (filename == b:scilabcomplete_tmpfile ? b:scilabcomplete_script_path : filename)
+                    let error_dict.filename = (filename == scilabcomplete#get_user_conf('scilabcomplete_tmpfile') ? expand("%:p") : filename)
                     let error_list += [error_dict]
                     break
                 endif
@@ -69,9 +69,9 @@ endfunction
 
 " Running script.
 function! s:run_script(path)    "{{{
-    let name    = b:scilabcomplete_process_name
-    let cmd     = b:scilabcomplete_startup_command
-    let prompts = b:scilabcomplete_console_prompts
+    let name    = scilabcomplete#get_user_conf('scilabcomplete_process_name')
+    let cmd     = scilabcomplete#get_user_conf('scilabcomplete_startup_command')
+    let prompts = scilabcomplete#get_user_conf('scilabcomplete_console_prompts')
 
     " Communicate with scilab process
     call s:PM.touch(name, cmd)
@@ -95,12 +95,12 @@ endfunction
 function! scilabcomplete#commands#update_workspace(bang)   "{{{
     if !exists("b:scilabcomplete_initialized")
         " Initialization of configuration variables runs only one time.
-        call scilabcomplete#Initialization()
+        call scilabcomplete#initialization()
     endif
     let s:PM = scilabcomplete#vital_module('PM')
 
-    execute "write! " . b:scilabcomplete_tmpfile
-    let error_list = s:run_script(b:scilabcomplete_tmpfile)
+    execute "write! " . scilabcomplete#get_user_conf('scilabcomplete_tmpfile')
+    let error_list = s:run_script(scilabcomplete#get_user_conf('scilabcomplete_tmpfile'))
     if !empty(error_list)
         if a:bang == '!'
             call setqflist(error_list)
