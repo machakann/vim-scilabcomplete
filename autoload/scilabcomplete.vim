@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 23-Dec-2013.
+" Last Change: 25-Dec-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -11,9 +11,10 @@
 function! scilabcomplete#Complete(findstart, base)  "{{{
     " 1st run   "{{{
     if a:findstart
-        let s:cursor  = col(".")
+        let s:col  = col(".")
+        let s:row  = line(".")
         let s:line = getline(".")
-        let pos = s:cursor
+        let pos = s:col
 
         while pos > 0
             let pos -= 1
@@ -43,8 +44,8 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     " Initialization of miscellaneous variables
     let candidates = []
     let output     = []
-    let word       = s:parse_struct_name(a:base, s:line, s:cursor)
-    let s:base = a:base
+    let word       = s:parse_struct_name(a:base, s:line, s:col)
+    let s:base     = a:base
 
     " If both word and a:base is empty, quit immediately.
     if word == "" && a:base == ""
@@ -323,11 +324,41 @@ endfunction
 
 " Default priorities
 function! scilabcomplete#default_priorities()   "{{{
-    let base         = s:base
-    let cursor_pos   = s:cursor - 2
-    let whole_line   = s:line
-    let until_cursor = s:line[0:cursor_pos]
-    let files        = s:scilabcomplete_files
+    let base         = scilabcomplete#base()
+    let cursor_row   = scilabcomplete#row()
+    let cursor_col   = scilabcomplete#col() - 2
+    let whole_line   = scilabcomplete#getline()
+    let until_cursor = whole_line[0:cursor_col]
+    let files        = scilabcomplete#candidates_files()
+
+    " for continuation lines
+    let increment = 1
+    while 1
+        let previous_line = getline(cursor_row-increment)
+        if match(previous_line, '\s*\.\.\s*$') >= 0
+            let previous_line = matchstr(previous_line, '^.*\ze\.\.\s*$')
+            let until_cursor = previous_line . until_cursor
+            let whole_line   = previous_line . whole_line
+        else
+            break
+        endif
+
+        let increment += 1
+    endwhile
+
+    let increment = 1
+    while 1
+        if match(whole_line, '\s*\.\.\s*$') >= 0
+            let next_line  = matchstr(getline(cursor_row+increment), '^.*\ze\.\.\s*')
+            let whole_line = whole_line . next_line
+        else
+            break
+        endif
+
+        let increment += 1
+    endwhile
+    unlet increment
+
     echomsg until_cursor
 
     if match(until_cursor, '^\s*\k*$') >= 0
@@ -362,14 +393,14 @@ function! scilabcomplete#default_priorities()   "{{{
             " argument
             echomsg 'argument'
             return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
-        elseif cursor_pos < operator_pos
+        elseif cursor_col < operator_pos
             " logical index lhs
             echomsg 'logical index lhs'
             return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
         else
             " logical index rhs
             echomsg 'logical index rhs'
-            return {'functions' : 6, 'commands' : -1, 'variables' : 4, 'macros' : 5, 'graphic_properties' : -1, 'files' : -1}
+            return {'functions' : 6, 'commands' : 3, 'variables' : 4, 'macros' : 5, 'graphic_properties' : -1, 'files' : -1}
         endif
         return
     endif
@@ -381,7 +412,7 @@ function! scilabcomplete#default_priorities()   "{{{
         let operator_pos = match(whole_line, '\%(||\|&&\)\%([^'']*''[^'']*''\)*[^''~=<>]*\zs\%(\~=\|<>\|<=\|>=\|=\|<\|>\)')
     endif
 
-    if operator_pos < 0 || s:cursor < operator_pos
+    if operator_pos < 0 || s:col < operator_pos
         " lhs
         echomsg 'lhs'
         return {'functions' : 5, 'commands' : -1, 'variables' : 6, 'macros' : 4, 'graphic_properties' : -1, 'files' : -1}
@@ -394,7 +425,7 @@ endfunction
 "}}}
 
 " Return vital object.
-function! scilabcomplete#vital_of(arg) "{{{
+function! scilabcomplete#vital_module(arg) "{{{
     if a:arg == ''
         return [s:V, s:PM]
     elseif a:arg == 'V'
@@ -411,9 +442,15 @@ function! scilabcomplete#getline()  "{{{
 endfunction
 "}}}
 
-" Return the present cursor position.
+" Return the present cursor row.
+function! scilabcomplete#row()  "{{{
+    return s:row
+endfunction
+"}}}
+
+" Return the present cursor column.
 function! scilabcomplete#col()  "{{{
-    return s:cursor
+    return s:col
 endfunction
 "}}}
 

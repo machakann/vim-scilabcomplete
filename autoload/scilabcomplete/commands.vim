@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 22-Dec-2013.
+" Last Change: 23-Dec-2013.
 
 " TODO: scilabのエラーメッセージをいろいろ出して対応する
 " TODO: エラーと警告の扱いについて
@@ -97,7 +97,7 @@ function! scilabcomplete#commands#update_workspace(bang)   "{{{
         " Initialization of configuration variables runs only one time.
         call scilabcomplete#Initialization()
     endif
-    let s:PM = scilabcomplete#vital_of('PM')
+    let s:PM = scilabcomplete#vital_module('PM')
 
     execute "write! " . b:scilabcomplete_tmpfile
     let error_list = s:run_script(b:scilabcomplete_tmpfile)

@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 22-Dec-2013.
+" Last Change: 27-Dec-2013.
 
 " なぜnormal!ではなくマクロを使ったのかというとそっちの方がちらちらして好きだ
 " からです！
@@ -40,7 +40,7 @@ let test_info.1       = {
     \   "1"    : { 'caption' : 'functions',   'result' : 'getline(".")', 'expectation' : 'functions = getversion();', 'key_input' : "A\<C-x>\<C-o>\<C-y>();\<Esc>",                     'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "2"    : { 'caption' : 'variables',   'result' : 'getline(".")', 'expectation' : 'variables = SCIHOME;',      'key_input' : "A\<C-x>\<C-o>\<C-y>;\<Esc>",                       'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "3"    : { 'caption' : 'macros',      'result' : 'getline(".")', 'expectation' : 'macros = sind(90);',        'key_input' : "A\<C-x>\<C-o>\<C-n>\<C-n>\<C-n>\<C-y>(90);\<Esc>", 'breaking' : 1, 'abort' : 0, 'pre' : {}, 'post' : {} },
-    \   "4"    : { 'caption' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'key_input' : "A\<C-x>\<C-o>\<C-n>\<C-y>\<Esc>",                  'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
+    \   "4"    : { 'caption' : 'commands',    'result' : 'getline(".")', 'expectation' : 'clear',                     'key_input' : "A\<C-x>\<C-o>\<C-y>\<Esc>",                        'breaking' : 0, 'abort' : 0, 'pre' : {}, 'post' : {} },
     \   "post" : { 'breaking' : 6 },
     \   }
 let test_info.2       = {
@@ -83,6 +83,7 @@ function! s:buffer_configuration(test_info)  "{{{
     let s:scrollopt = &scrollopt
     set scrollopt-=jump
     setlocal scrollbind
+    setlocal buftype=nowrite
     let s:test_script_tab_nr    = tabpagenr()
     let s:test_script_win_nr    = winnr()
     let s:test_script_buf_nr    = bufnr('%')
