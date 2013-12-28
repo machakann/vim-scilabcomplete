@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 28-Dec-2013.
+" Last Change: 29-Dec-2013.
 
 " TODO: scilabのエラーメッセージをいろいろ出して対応する
 " TODO: エラーと警告の扱いについて
@@ -77,16 +77,15 @@ function! s:run_script(path)    "{{{
     call s:PM.touch(name, cmd)
     let script_path = a:path
     let msg         = 'exec("' . script_path . '", -1)'
-    let success     = scilabcomplete#run_command(name, msg, prompts)
     let error_list  = []
 
-    if success == len(prompts)
-        let output   = scilabcomplete#read_out(name, prompts)
-        let msg_list = filter(filter(split(output[0], '\r*\n'), 'v:val != " "'), 'v:val != ""')
-        if !empty(msg_list)
-            let error_list = s:parse_error(msg_list)
-        endif
+    call scilabcomplete#run_command(name, msg, prompts)
+    let output   = scilabcomplete#read_out(name, prompts)
+    let msg_list = filter(filter(split(output[0], '\r*\n'), 'v:val != " "'), 'v:val != ""')
+    if !empty(msg_list)
+        let error_list = s:parse_error(msg_list)
     endif
+
     return error_list
 endfunction
 "}}}

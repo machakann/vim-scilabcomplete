@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 28-Dec-2013.
+" Last Change: 29-Dec-2013.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -46,41 +46,35 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     if word !=# a:base
         " For the case of struct fields or graphic properties.
         let msg = "scilabcomplete_ans = exists('" . word . "')"
-        let success = scilabcomplete#run_command(name, msg, prompts)
-        if success == len(prompts)
+        call scilabcomplete#run_command(name, msg, prompts)
+        let output = scilabcomplete#read_out(name, prompts)
+        if matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs[01]\ze.')
+            let msg     = "scilabcomplete_ans = type(" . word . ")"
+            call scilabcomplete#run_command(name, msg, prompts)
             let output = scilabcomplete#read_out(name, prompts)
-            if matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs[01]\ze.')
-                let msg     = "scilabcomplete_ans = type(" . word . ")"
-                let success = scilabcomplete#run_command(name, msg, prompts)
-                if success == len(prompts)
-                    let output = scilabcomplete#read_out(name, prompts)
-                    let type = matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs\d\+\ze.')
-                    let fieldnames = []
-                    if type =~# "17"
-                        let kind    = "k"
-                        let msg     = "scilabcomplete_ans = fieldnames(" . word . ")"
-                        let success = scilabcomplete#run_command(name, msg, prompts)
-                        if success == len(prompts)
-                            let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
-                            if !empty(a:base)
-                                let fieldnames = filter(fieldnames, "v:val =~# '^" . a:base . ".*'")
-                            endif
-                        endif
-                    elseif type =~# "9"
-                        let kind    = "g"
-                        let msg     = "scilabcomplete_gp = completion('" . a:base . "', 'graphic_properties')"
-                        let success = scilabcomplete#run_command(name, msg, prompts)
-                        if success == len(prompts)
-                            let output = scilabcomplete#read_out(name, prompts)
-                            let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
-                        endif
-                    endif
-                    for key in fieldnames
-                        call add(candidates, {"word" : key, "kind" : kind})
-                    endfor
+            let type = matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs\d\+\ze.')
+
+            let fieldnames = []
+            if type =~# "17"
+                let kind    = "k"
+                let msg     = "scilabcomplete_ans = fieldnames(" . word . ")"
+                call scilabcomplete#run_command(name, msg, prompts)
+                let output = scilabcomplete#read_out(name, prompts)
+                let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_ans  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
+                if !empty(a:base)
+                    let fieldnames = filter(fieldnames, "v:val =~# '^" . a:base . ".*'")
                 endif
+            elseif type =~# "9"
+                let kind    = "g"
+                let msg     = "scilabcomplete_gp = completion('" . a:base . "', 'graphic_properties')"
+                call scilabcomplete#run_command(name, msg, prompts)
+                let output = scilabcomplete#read_out(name, prompts)
+                let fieldnames = filter(split(substitute(matchstr(output[0], ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val !=# ""')
             endif
+
+            for key in fieldnames
+                call add(candidates, {"word" : key, "kind" : kind})
+            endfor
         endif
     else
         " keyword completion
@@ -256,24 +250,6 @@ function! s:priorities_dict_gen(arg, context)    "{{{
 endfunction
 "}}}
 
-" Serch for the user configuration from g: scope and b:scope.
-function! scilabcomplete#get_user_conf(name)    "{{{
-    if exists('g:' . a:name)
-        execute "let user_conf = g:" . a:name
-    endif
-
-    if exists('w:' . a:name)
-        execute "let user_conf = w:" . a:name
-    endif
-
-    if exists('b:' . a:name)
-        execute "let user_conf = b:" . a:name
-    endif
-
-    return user_conf
-endfunction
-"}}}
-
 " Initialization of required buffer local variables.
 function! scilabcomplete#initialization()   "{{{
     " Process name for use of process manager
@@ -315,28 +291,44 @@ function! scilabcomplete#initialization()   "{{{
 endfunction
 "}}}
 
+" Serch for the user configuration from g: scope and b:scope.
+function! scilabcomplete#get_user_conf(name)    "{{{
+    if exists('g:' . a:name)
+        execute "let user_conf = g:" . a:name
+    endif
+
+    if exists('w:' . a:name)
+        execute "let user_conf = w:" . a:name
+    endif
+
+    if exists('b:' . a:name)
+        execute "let user_conf = b:" . a:name
+    endif
+
+    return user_conf
+endfunction
+"}}}
+
 " Execute Scilab command to return the number of prompts which succeeded to sending.
 function! scilabcomplete#run_command(name, msg, prompts)  "{{{
-    let success = 0
-    if s:PM.writeln(a:name, a:msg) =~# 'active'
-        for prompt in a:prompts
-            if s:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')") =~# 'active'
-                let success = success + 1
-            endif
-        endfor
-    endif
-    return success
+    call s:PM.writeln(a:name, a:msg)
+    for prompt in a:prompts
+        call s:PM.writeln(a:name, "mfprintf(6, '" . prompt . "')")
+    endfor
 endfunction
 "}}}
 
 " Read out the output from scilab console.
 function! scilabcomplete#read_out(name, prompts)    "{{{
-    while 1
-        " 安全策を入れる、エラー処理勉強して
+    let output  = ['', '', '']
+    let l:count = 0
+    while l:count < 100
         let output = s:PM.read(a:name, a:prompts)
         if output[2] =~# "matched"
             break
         endif
+
+        let l:count += 1
         sleep 10m
     endwhile
     return output
