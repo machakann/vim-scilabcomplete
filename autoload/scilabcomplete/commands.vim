@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 29-Dec-2013.
+" Last Change: 30-Dec-2013.
 
 " TODO: scilabのエラーメッセージをいろいろ出して対応する
 " TODO: エラーと警告の扱いについて
@@ -27,7 +27,7 @@ function! s:parse_error(msg_list)   "{{{
             let error_dict.col  = ''
             let error_dict.text = matchstr(line, '^Warning :\zs.*')
             let error_dict.type = 'W'
-            let error_list += [error_dict]
+            let error_list += [deepcopy(error_dict)]
         elseif nr != ''
             let error_dict.nr   = nr
             let error_dict.col  = col
@@ -45,7 +45,7 @@ function! s:parse_error(msg_list)   "{{{
                     let error_dict.lnum     = lnum
                 elseif filename != ''
                     let error_dict.filename = (filename == scilabcomplete#get_user_conf('scilabcomplete_tmpfile') ? expand("%:p") : filename)
-                    let error_list += [error_dict]
+                    let error_list += [deepcopy(error_dict)]
                     break
                 endif
                 let idx += 1
@@ -106,10 +106,10 @@ function! scilabcomplete#commands#update_workspace(bang)   "{{{
         else
             echohl WarningMsg
             for error_dict in error_list
-                if !empty(error_dict)
-                    let error_msg = 'scilabcomplete : |lnum ' . error_dict.lnum . '| ' . error_dict.text
+                if error_dict.type ==# 'E'
+                    let error_msg = 'scilabcomplete : |Error line ' . error_dict.lnum . '| ' . error_dict.text
                 else
-                    let error_msg = 'scilabcomplete : ' . error_dict.text
+                    let error_msg = 'scilabcomplete : |Warning|' . error_dict.text
                 endif
 
                 echomsg error_msg
@@ -121,3 +121,4 @@ function! scilabcomplete#commands#update_workspace(bang)   "{{{
     endif
 endfunction
 "}}}
+

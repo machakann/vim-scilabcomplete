@@ -67,3 +67,21 @@ graphic_handle = gca();
 // graphic_handle.poly
 
 //----------------------
+
+function a = test_scilabcomplete()
+    a = 1 + 1;
+    return a
+endfunction
+
+// Test 4
+//----------------------
+// 4.1 warning message handling
+// function b = test_scilabcomplete()
+//     b = 1 + 2;
+//     return b
+// endfunction
+
+// 4.2 error message handling
+// disp(1 + 'a')
+
+//----------------------

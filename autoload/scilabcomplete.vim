@@ -79,37 +79,35 @@ function! scilabcomplete#Complete(findstart, base)  "{{{
     else
         " keyword completion
         let msg     = "[scilabcomplete_functions, scilabcomplete_commands, scilabcomplete_variables, scilabcomplete_macros, scilabcomplete_gp, scilabcomplete_files] = completion('" . a:base . "')"
-        let success = scilabcomplete#run_command(name, msg, prompts)
-        if success == len(prompts)
-            let output = scilabcomplete#read_out(name, prompts)
+        call scilabcomplete#run_command(name, msg, prompts)
+        let output = scilabcomplete#read_out(name, prompts)
 
-            " Parsing the output
-            let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
-            let scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        " Parsing the output
+        let scilabcomplete_files              = filter(split(substitute(matchstr(output[0],           ' scilabcomplete_files  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_gp  ='),            '[! ]\(\f*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        let scilabcomplete_graphic_properties = filter(split(substitute(matchstr(output[0],          ' scilabcomplete_gp  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_macros  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        let scilabcomplete_macros             = filter(split(substitute(matchstr(output[0],   ' scilabcomplete_macros  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_variables  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        let scilabcomplete_variables          = filter(split(substitute(matchstr(output[0], ' scilabcomplete_variables  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_commands  ='), '[! ]\([a-za-z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        let scilabcomplete_commands           = filter(split(substitute(matchstr(output[0], ' scilabcomplete_commands  =\r\?\n \r\?\n *\zs.*\ze scilabcomplete_functions  ='), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
+        let scilabcomplete_functions          = filter(split(substitute(matchstr(output[0],                               ' scilabcomplete_functions  =\r\?\n \r\?\n *\zs.*'), '[! ]\([a-zA-Z0-9_%]*\) *!\?\r\?', '\1', "g"), '\n'), 'v:val =~# ''[a-zA-Z0-9_%]\+''')
 
-            let context              = s:recognize_context(a:base, s:row, s:col, s:line)
-            let candidate_priorities = s:priorities_dict_gen(scilabcomplete#get_user_conf('scilabcomplete_candidate_priorities'), context)
-            let priorities_list      = values(candidate_priorities)
-            while !empty(priorities_list)
-                let key = s:matched_key(candidate_priorities, max(priorities_list))
-                execute "let list = scilabcomplete_" . key
-                if key == "files"
-                    let kind = "F"
-                else
-                    let kind = key[0]
-                endif
+        let context              = s:recognize_context(a:base, s:row, s:col, s:line)
+        let candidate_priorities = s:priorities_dict_gen(scilabcomplete#get_user_conf('scilabcomplete_candidate_priorities'), context)
+        let priorities_list      = values(candidate_priorities)
+        while !empty(priorities_list)
+            let key = s:matched_key(candidate_priorities, max(priorities_list))
+            execute "let list = scilabcomplete_" . key
+            if key == "files"
+                let kind = "F"
+            else
+                let kind = key[0]
+            endif
 
-                for candidate in list
-                    call add(candidates, {"word" : candidate, "kind" : kind})
-                endfor
+            for candidate in list
+                call add(candidates, {"word" : candidate, "kind" : kind})
+            endfor
 
-                call remove(priorities_list, match(priorities_list, max(priorities_list)))
-            endwhile
-        endif
+            call remove(priorities_list, match(priorities_list, max(priorities_list)))
+        endwhile
     endif
 
     unlet s:line
