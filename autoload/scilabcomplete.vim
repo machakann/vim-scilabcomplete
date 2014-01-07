@@ -1,6 +1,6 @@
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
-" Last Change: 29-Dec-2013.
+" Last Change: 07-Jan-2014.
 
 " 頑張りたいと思う
 " TODO: キャッシングできたほうが嬉しい
@@ -344,9 +344,8 @@ function! s:recognize_context(base, row, col, line)   "{{{
     " for continuation lines
     let increment = 1
     while 1
-        let previous_line = getline(cursor_row-increment)
-        if match(previous_line, '\s*\.\.\s*$') >= 0
-            let previous_line = matchstr(previous_line, '^.*\ze\.\.\s*$')
+        let previous_line = matchstr(getline(cursor_row-increment), '^.*\ze\.\.\s*$')
+        if previous_line != ''
             let until_cursor = previous_line . until_cursor
             let whole_line   = previous_line . whole_line
         else
